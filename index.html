@@ -1,0 +1,3772 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>영혼 빌리지 : 붉은 벽돌 저택</title>
+  <!-- 구글 폰트 -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Hahmlet:wght@300;400;700&family=Cinzel:wght@400;600&family=Noto+Serif+KR:wght@300;400&display=swap" rel="stylesheet">
+
+  <style>
+    *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+    body { background:#05050f; min-height:100vh; font-family:'Noto Serif KR','Georgia',serif; overflow-x:hidden; }
+
+    .sky { position:fixed; inset:0; background:linear-gradient(to bottom,#03030a 0%,#080820 25%,#100d2a 55%,#1e1230 75%,#2a1630 100%); z-index:0; }
+    #stars { position:fixed; inset:0; z-index:1; pointer-events:none; }
+    .star { position:absolute; border-radius:50%; background:#fff; animation:twinkle var(--dur,3s) ease-in-out infinite alternate; animation-delay:var(--delay,0s); }
+    @keyframes twinkle { from{opacity:var(--lo,.2);transform:scale(1);} to{opacity:var(--hi,.9);transform:scale(1.4);} }
+    .moon { position:fixed; top:60px; right:120px; width:70px; height:70px; border-radius:50%; background:radial-gradient(circle at 35% 35%,#fff8d0,#f0d870 50%,#c0a820); box-shadow:0 0 40px rgba(240,210,80,.35),0 0 90px rgba(240,210,80,.12); z-index:2; }
+
+    .container { position:relative; z-index:10; display:flex; flex-direction:column; align-items:center; padding:36px 20px 60px; }
+    .header { text-align:center; margin-bottom:28px; }
+    .header-sub { color:#d4a870; font-size:.9rem; letter-spacing:.38em; margin-bottom:10px; text-transform:uppercase; font-family:'Cinzel',serif; text-shadow:0 0 14px rgba(210,160,90,.5); }
+    .header-title {
+      color:#f0ddb0; font-size:1.75rem; letter-spacing:.08em;
+      text-shadow: 0 0 30px rgba(240,200,90,.55), 0 2px 8px rgba(0,0,0,.8);
+      margin-bottom:10px;
+      font-family:'Hahmlet', serif; font-weight:700;
+      line-height:1.4;
+    }
+    .header-desc { color:#d4a870; font-size:.9rem; letter-spacing:.2em; font-style:italic; font-family:'Noto Serif KR',serif; font-weight:400; text-shadow:0 0 12px rgba(210,160,80,.4); }
+
+    .building-wrap { position:relative; width:min(420px,72vw); }
+
+    /* 지붕 영역 - 굴뚝 포함한 높이 명시 */
+    .roof-wrap {
+      position:relative;
+      display:flex; justify-content:center; align-items:flex-end;
+      height:110px;
+    }
+
+    /* 굴뚝 - roof-wrap 안에 절대 위치, 지붕 왼쪽 사면에 붙음 */
+    .chimney-wrap {
+      position:absolute;
+      bottom:0; left:20%;
+      display:flex; flex-direction:column; align-items:center;
+      z-index:3;
+    }
+    .chimney { width:28px; height:46px; background:linear-gradient(to right,#3e1a1a,#5a2525,#3e1a1a); border:2px solid #2a1010; border-bottom:none; }
+    .chimney-cap { width:38px; height:7px; background:#2a1010; border-radius:2px; }
+    .smoke { position:absolute; bottom:100%; left:50%; transform:translateX(-50%); pointer-events:none; }
+    .smoke span { position:absolute; bottom:0; width:10px; height:10px; border-radius:50%; background:rgba(200,200,220,.18); animation:float var(--sd,4s) ease-in infinite; animation-delay:var(--ss,0s); }
+    @keyframes float { 0%{transform:translate(0,0) scale(1);opacity:.3;} 100%{transform:translate(var(--sx,8px),-50px) scale(3);opacity:0;} }
+
+    .roof-wrap { position:relative; display:flex; justify-content:center; align-items:flex-end; }
+    .roof-body { width:0; height:0; border-left:140px solid transparent; border-right:140px solid transparent; border-bottom:90px solid #3a1818; position:relative; z-index:2; filter:drop-shadow(0 -4px 10px rgba(0,0,0,.6)); }
+    .roof-body::after { content:''; position:absolute; top:10px; left:-120px; width:240px; height:80px; background:repeating-linear-gradient(-35deg,transparent,transparent 18px,rgba(0,0,0,.15) 18px,rgba(0,0,0,.15) 20px); clip-path:polygon(50% 0%,100% 100%,0% 100%); }
+
+    .roof-window { position:absolute; bottom:18px; left:50%; transform:translateX(-50%); width:52px; height:52px; border-radius:50%; background:#150808; border:5px solid #2a1010; cursor:pointer; z-index:3; transition:all .35s ease; box-shadow:inset 0 0 12px rgba(0,0,0,.9); display:flex; align-items:center; justify-content:center; font-size:1.1rem; }
+    .roof-window:not(.lit):hover { background:#201010; box-shadow:inset 0 0 15px rgba(255,150,50,.15),0 0 14px rgba(255,150,50,.15); transform:translateX(-50%) scale(1.08); }
+    .roof-window.lit { background:radial-gradient(circle,#a0b8ff 0%,#4060d0 60%,#202880 100%); box-shadow:0 0 24px rgba(100,130,255,.9),0 0 55px rgba(80,100,255,.4); border-color:#6080e0; animation:roofGlow 2s ease-in-out infinite alternate; }
+    @keyframes roofGlow { from{box-shadow:0 0 24px rgba(100,130,255,.8),0 0 55px rgba(80,100,255,.35);} to{box-shadow:0 0 40px rgba(130,160,255,1),0 0 80px rgba(110,140,255,.5);} }
+
+    .mansion { width:100%; background:#5a2828; border:3px solid #3a1515; border-top:none; padding:22px 36px 28px; position:relative; }
+    .mansion::before { content:''; position:absolute; inset:0; background-image:repeating-linear-gradient(0deg,transparent,transparent 13px,rgba(0,0,0,.12) 13px,rgba(0,0,0,.12) 15px),repeating-linear-gradient(90deg,transparent,transparent 26px,rgba(0,0,0,.07) 26px,rgba(0,0,0,.07) 28px); pointer-events:none; }
+    .mansion::after { content:''; position:absolute; top:0; left:0; right:0; height:6px; background:#2a1010; }
+
+    .floor { display:flex; justify-content:center; gap:22px; margin-bottom:20px; position:relative; z-index:2; }
+
+    .window { width:72px; height:95px; background:#120808; border:4px solid #3a1515; border-radius:4px 4px 0 0; cursor:pointer; position:relative; transition:all .3s ease; box-shadow:inset 0 0 14px rgba(0,0,0,.85); }
+    .window::before { content:''; position:absolute; inset:0; background:linear-gradient(to right,transparent 46%,#3a1515 46%,#3a1515 54%,transparent 54%),linear-gradient(to bottom,transparent 43%,#3a1515 43%,#3a1515 57%,transparent 57%); z-index:1; pointer-events:none; }
+    .window::after { content:''; position:absolute; bottom:-10px; left:-8px; right:-8px; height:10px; background:#3a1515; border-radius:0 0 3px 3px; }
+    .window:not(.lit):hover { background:#1e0c0c; box-shadow:inset 0 0 16px rgba(255,150,50,.12),0 0 12px rgba(255,130,40,.12); transform:scale(1.06); z-index:5; }
+    .window.lit { background:radial-gradient(ellipse at 50% 25%,#ffec9a 0%,#ffb830 45%,#c07000 100%); box-shadow:0 0 22px rgba(255,190,60,.85),0 0 50px rgba(255,160,40,.4),inset 0 0 18px rgba(255,230,120,.25); cursor:default; border-color:#805010; }
+    .window.lit:hover { transform:none; }
+    .w-icon { position:absolute; top:50%; left:50%; transform:translate(-50%,-60%); font-size:1.25rem; z-index:2; pointer-events:none; transition:opacity .3s; }
+    .window.lit .w-icon { opacity:0; }
+    .w-label { position:absolute; bottom:5px; left:50%; transform:translateX(-50%); font-size:9px; letter-spacing:.08em; color:rgba(255,255,255,.22); z-index:2; pointer-events:none; }
+    .window.lit .w-label { color:rgba(0,0,0,.35); }
+
+    .entrance { display:flex; justify-content:center; align-items:flex-end; gap:40px; position:relative; z-index:2; margin-top:10px; }
+    .porch-window { width:50px; height:65px; background:#120808; border:3px solid #3a1515; border-radius:3px 3px 0 0; position:relative; cursor:pointer; transition:all .3s ease; box-shadow:inset 0 0 10px rgba(0,0,0,.8); }
+    .porch-window::before { content:''; position:absolute; inset:0; background:linear-gradient(to right,transparent 45%,#3a1515 45%,#3a1515 55%,transparent 55%),linear-gradient(to bottom,transparent 42%,#3a1515 42%,#3a1515 58%,transparent 58%); z-index:1; pointer-events:none; }
+    .porch-window::after { content:''; position:absolute; bottom:-8px; left:-6px; right:-6px; height:8px; background:#3a1515; }
+    .porch-window:not(.lit):hover { background:#1e0c0c; box-shadow:inset 0 0 12px rgba(255,150,50,.12),0 0 10px rgba(255,130,40,.12); transform:scale(1.06); z-index:5; }
+    .porch-window.lit { background:radial-gradient(ellipse at 50% 25%,#ffec9a,#ffb830 50%,#c07000); box-shadow:0 0 18px rgba(255,190,60,.8),0 0 40px rgba(255,160,40,.35); cursor:default; border-color:#805010; }
+    .porch-window.lit:hover { transform:none; }
+    .pw-icon { position:absolute; top:50%; left:50%; transform:translate(-50%,-60%); font-size:1rem; z-index:2; pointer-events:none; }
+    .porch-window.lit .pw-icon { opacity:0; }
+    .pw-label { position:absolute; bottom:3px; left:50%; transform:translateX(-50%); font-size:8px; color:rgba(255,255,255,.2); z-index:2; pointer-events:none; }
+    .porch-window.lit .pw-label { color:rgba(0,0,0,.3); }
+
+    .front-door { width:88px; height:120px; background:linear-gradient(to bottom,#1e0a0a,#150606); border:4px solid #1a0808; border-radius:44px 44px 0 0; position:relative; z-index:3; }
+    .door-arch { position:absolute; top:0; left:0; right:0; height:44px; background:#120606; border-radius:44px 44px 0 0; }
+    .door-panel { position:absolute; top:50px; left:10px; right:10px; bottom:8px; border:2px solid #2a1010; border-radius:2px; }
+    .door-knob { position:absolute; right:14px; top:50%; width:10px; height:10px; background:radial-gradient(circle at 35% 35%,#d4a820,#806010); border-radius:50%; box-shadow:0 0 6px rgba(180,140,30,.5); }
+    .front-door { cursor:pointer; transition:filter .3s; }
+    .front-door:hover { filter:brightness(1.5) drop-shadow(0 0 8px rgba(200,140,40,.4)); }
+
+    /* ══ 컨셉 포토 갤러리 모달 ════════════════ */
+    #photo-overlay {
+      position:fixed; inset:0; background:rgba(0,0,0,.92);
+      backdrop-filter:blur(8px); z-index:300;
+      display:flex; align-items:center; justify-content:center;
+      opacity:0; pointer-events:none; transition:opacity .35s;
+    }
+    #photo-overlay.open { opacity:1; pointer-events:all; }
+    #photo-modal {
+      position:relative; width:min(520px,94vw);
+      transform:translateY(22px) scale(.96);
+      transition:transform .35s cubic-bezier(.34,1.4,.64,1);
+    }
+    #photo-overlay.open #photo-modal { transform:translateY(0) scale(1); }
+
+    /* 닫기 */
+    #photo-close {
+      position:absolute; top:-42px; right:0;
+      background:none; border:none; color:rgba(255,255,255,.4);
+      font-size:1.3rem; cursor:pointer; z-index:5; transition:color .2s;
+    }
+    #photo-close:hover { color:#fff; }
+
+    /* 상단 제목 */
+    #photo-header { text-align:center; margin-bottom:16px; }
+    #photo-title {
+      color:#f0ddb0; font-family:'Hahmlet',serif; font-weight:700;
+      font-size:1rem; letter-spacing:.1em;
+      text-shadow:0 0 16px rgba(240,200,80,.4);
+    }
+    #photo-counter {
+      color:rgba(200,160,90,.5); font-size:.68rem;
+      letter-spacing:.2em; font-family:'Cinzel',serif;
+      margin-top:4px;
+    }
+
+    /* 슬라이더 뷰포트 */
+    #photo-viewport {
+      width:100%; aspect-ratio:4/3; position:relative;
+      overflow:hidden; border-radius:8px;
+      background:#0a0808;
+      border:1px solid rgba(255,255,255,.08);
+    }
+
+    /* 슬라이드 트랙 */
+    #photo-track {
+      display:flex; height:100%;
+      transition:transform .45s cubic-bezier(.4,0,.2,1);
+    }
+
+    /* 각 슬라이드 */
+    .photo-slide {
+      min-width:100%; height:100%; flex-shrink:0;
+      position:relative;
+      display:flex; align-items:center; justify-content:center;
+      overflow:hidden;
+    }
+    .photo-slide img {
+      width:100%; height:100%; object-fit:cover;
+      display:block;
+    }
+    /* 이미지 없을 때 플레이스홀더 */
+    .photo-slide .ph {
+      display:flex; flex-direction:column; align-items:center;
+      justify-content:center; gap:8px;
+      color:rgba(255,255,255,.18); font-size:.78rem;
+      letter-spacing:.15em; line-height:2;
+    }
+    .photo-slide .ph-num {
+      font-size:1.8rem; opacity:.3;
+    }
+
+    /* 좌우 화살표 버튼 */
+    .photo-arrow {
+      position:absolute; top:50%; transform:translateY(-50%);
+      width:38px; height:38px; border-radius:50%;
+      background:rgba(0,0,0,.55); border:1px solid rgba(255,255,255,.15);
+      color:rgba(255,255,255,.7); font-size:1rem;
+      cursor:pointer; z-index:4;
+      display:flex; align-items:center; justify-content:center;
+      transition:all .2s; backdrop-filter:blur(4px);
+    }
+    .photo-arrow:hover { background:rgba(180,60,20,.6); border-color:rgba(240,160,60,.5); color:#fff; }
+    #photo-prev { left:10px; }
+    #photo-next { right:10px; }
+
+    /* 하단 도트 */
+    #photo-dots {
+      display:flex; justify-content:center; gap:7px; margin-top:14px;
+    }
+    .photo-dot {
+      width:6px; height:6px; border-radius:50%;
+      background:rgba(255,255,255,.2); cursor:pointer;
+      transition:background .3s, transform .3s;
+    }
+    .photo-dot.active {
+      background:#f0c060; transform:scale(1.35);
+    }
+
+    /* 다운로드 버튼 */
+    #photo-dl-btn {
+      display:block; width:100%; margin-top:12px; padding:10px;
+      background:rgba(120,40,20,.7); border:1px solid rgba(200,80,30,.4);
+      border-radius:6px; color:#f0ddb0;
+      font-size:.75rem; letter-spacing:.15em;
+      cursor:pointer; font-family:'Cinzel',serif;
+      text-align:center; transition:background .2s;
+    }
+    #photo-dl-btn:hover { background:rgba(160,50,20,.9); }
+
+    /* ══ 가사 팝업 모달 ════════════════════════ */
+    #lyrics-overlay {
+      position:fixed; inset:0; background:rgba(0,0,0,.85);
+      backdrop-filter:blur(6px); z-index:250;
+      display:flex; align-items:center; justify-content:center;
+      opacity:0; pointer-events:none; transition:opacity .35s;
+    }
+    #lyrics-overlay.open { opacity:1; pointer-events:all; }
+    #lyrics-modal {
+      background:linear-gradient(160deg,#10080c,#080510);
+      border:1.5px solid rgba(200,160,255,.2);
+      border-radius:12px;
+      width:min(420px,92vw); max-height:78vh;
+      overflow-y:auto; padding:34px 28px 26px;
+      position:relative;
+      transform:translateY(24px) scale(.96);
+      transition:transform .35s cubic-bezier(.34,1.4,.64,1);
+      box-shadow:0 0 50px rgba(160,100,255,.1), 0 0 100px rgba(160,100,255,.05);
+    }
+    #lyrics-overlay.open #lyrics-modal { transform:translateY(0) scale(1); }
+    #lyrics-modal::-webkit-scrollbar { width:3px; }
+    #lyrics-modal::-webkit-scrollbar-thumb { background:#3a1a3a; border-radius:2px; }
+
+    #lyrics-close {
+      position:absolute; top:14px; right:16px;
+      background:none; border:none; color:rgba(255,255,255,.25);
+      font-size:1.1rem; cursor:pointer; transition:color .2s;
+    }
+    #lyrics-close:hover { color:rgba(255,255,255,.7); }
+
+    #lyrics-floor-tag {
+      color:rgba(180,140,255,.5); font-size:.64rem;
+      letter-spacing:.4em; font-family:'Cinzel',serif;
+      text-transform:uppercase; margin-bottom:6px;
+    }
+    #lyrics-song-title {
+      color:#f0ddb0; font-family:'Hahmlet',serif; font-weight:700;
+      font-size:1.25rem; margin-bottom:3px;
+      text-shadow:0 0 16px rgba(200,160,255,.3);
+    }
+    #lyrics-artist {
+      color:rgba(180,140,220,.45); font-size:.75rem;
+      letter-spacing:.15em; font-style:italic;
+      font-family:'Noto Serif KR',serif; margin-bottom:20px;
+    }
+    .lyrics-divider {
+      border:none; border-top:1px solid rgba(255,255,255,.07);
+      margin-bottom:20px;
+    }
+    #lyrics-body {
+      color:rgba(220,200,240,.75); font-size:.88rem;
+      line-height:2.4; font-family:'Noto Serif KR',serif;
+      font-weight:300; white-space:pre-line; letter-spacing:.04em;
+    }
+    /* 가사 강조 (후렴) */
+    #lyrics-body strong {
+      color:#f0ddb0; font-weight:600;
+    }
+    #lyrics-actions {
+      display:flex; gap:10px; margin-top:22px; flex-wrap:wrap;
+    }
+    .lbtn {
+      padding:9px 20px; border-radius:4px;
+      font-size:.75rem; letter-spacing:.1em; cursor:pointer; transition:all .2s;
+      font-family:'Noto Serif KR',serif;
+    }
+    .lbtn-replay {
+      background:rgba(160,100,255,.15); border:1px solid rgba(160,100,255,.35);
+      color:rgba(200,170,255,.9);
+      flex:1;
+    }
+    .lbtn-replay:hover { background:rgba(160,100,255,.3); }
+    .lbtn-close {
+      background:transparent; border:1px solid rgba(255,255,255,.1);
+      color:rgba(255,255,255,.3);
+    }
+    .lbtn-close:hover { border-color:rgba(255,255,255,.3); color:rgba(255,255,255,.6); }
+
+    .steps { display:flex; flex-direction:column; align-items:center; }
+    .step { background:linear-gradient(to bottom,#4a2020,#3a1515); border:2px solid #2a1010; border-top-color:#5a2a2a; }
+    .step:nth-child(1){width:180px;height:13px;} .step:nth-child(2){width:230px;height:13px;} .step:nth-child(3){width:280px;height:13px;}
+    .ground { height:35px; background:linear-gradient(to bottom,#180c08,#0e0806); }
+
+    .progress-wrap { width:min(420px,72vw); margin-top:22px; text-align:center; }
+    .progress-label { color:#c09060; font-size:.82rem; letter-spacing:.2em; margin-bottom:7px; font-family:'Cinzel',serif; text-shadow:0 0 8px rgba(200,150,80,.3); }
+    .progress-label strong { color:#f0ddb0; }
+    .progress-bar { height:5px; background:rgba(255,255,255,.08); border-radius:3px; overflow:hidden; }
+    .progress-fill { height:100%; width:0%; background:linear-gradient(to right,#cc4020,#e08020,#f0c040,#e8f080); border-radius:3px; transition:width .9s cubic-bezier(.4,0,.2,1); }
+
+    .hint { position:fixed; bottom:22px; left:50%; transform:translateX(-50%); color:rgba(240,210,160,.65); font-size:.8rem; letter-spacing:.25em; z-index:20; white-space:nowrap; animation:hintPulse 5s ease-in-out infinite; font-family:'Cinzel',serif; text-shadow:0 0 12px rgba(220,180,100,.4); }
+    @keyframes hintPulse { 0%,100%{opacity:.15;} 50%{opacity:.5;} }
+
+    /* ── MODAL ── */
+    .overlay { position:fixed; inset:0; background:rgba(0,0,0,.82); backdrop-filter:blur(5px); z-index:200; display:flex; align-items:center; justify-content:center; opacity:0; pointer-events:none; transition:opacity .3s ease; }
+    .overlay.open { opacity:1; pointer-events:all; }
+    .modal { background:linear-gradient(160deg,#1a0c0c,#140808); border:2px solid #5a2828; border-radius:10px; width:460px; max-width:92vw; max-height:85vh; overflow-y:auto; padding:36px 32px 30px; position:relative; transform:translateY(24px) scale(.96); transition:transform .3s cubic-bezier(.34,1.56,.64,1); box-shadow:0 0 50px rgba(180,60,20,.2),0 0 120px rgba(180,60,20,.08),inset 0 1px 0 rgba(255,255,255,.05); }
+    .overlay.open .modal { transform:translateY(0) scale(1); }
+    .modal-close { position:absolute; top:14px; right:16px; background:none; border:none; color:rgba(255,255,255,.25); font-size:1.15rem; cursor:pointer; transition:color .2s; }
+    .modal-close:hover { color:rgba(255,255,255,.75); }
+    .modal-floor-tag { color:#c09060; font-size:.75rem; letter-spacing:.4em; margin-bottom:7px; text-transform:uppercase; font-family:'Cinzel',serif; text-shadow:0 0 8px rgba(200,150,80,.3); }
+    .modal-room-title { color:#f0ddb0; font-size:1.45rem; margin-bottom:4px; font-family:'Hahmlet',serif; font-weight:700; text-shadow:0 0 16px rgba(240,200,80,.3); }
+    .modal-track { color:#c09060; font-size:.85rem; letter-spacing:.12em; font-style:italic; margin-bottom:20px; font-family:'Noto Serif KR',serif; font-weight:400; }
+    .modal-divider { border:none; border-top:1px solid rgba(255,255,255,.07); margin-bottom:20px; }
+    .interaction-box { background:rgba(255,255,255,.025); border:1px dashed rgba(255,255,255,.1); border-radius:8px; height:220px; display:flex; align-items:center; justify-content:center; text-align:center; overflow:hidden; position:relative; margin-bottom:22px; }
+    .interaction-box.floor10 { height:auto; min-height:220px; overflow:visible; border:none; background:none; }
+    .modal-actions { display:flex; gap:10px; flex-wrap:wrap; }
+    .btn { padding:10px 24px; border-radius:4px; font-size:.8rem; letter-spacing:.1em; cursor:pointer; transition:all .2s; }
+    .btn-primary { background:#782820; border:1px solid #a03820; color:#f0ddb0; }
+    .btn-primary:hover { background:#9a3828; }
+    .btn-secondary { background:transparent; border:1px solid rgba(255,255,255,.12); color:rgba(255,255,255,.35); }
+    .btn-secondary:hover { border-color:rgba(255,255,255,.3); color:rgba(255,255,255,.6); }
+    .locked-content { text-align:center; padding:12px 0; }
+    .locked-icon { font-size:2.8rem; margin-bottom:14px; }
+    .locked-text { color:#9a7050; font-size:.82rem; line-height:2; }
+    .locked-text strong { color:#f0ddb0; }
+    .cleared-content { text-align:center; padding:20px 0; }
+    .cleared-icon { font-size:2.5rem; margin-bottom:10px; }
+    .cleared-text { color:#a08050; font-size:.82rem; line-height:2; }
+    .modal::-webkit-scrollbar { width:4px; }
+    .modal::-webkit-scrollbar-thumb { background:#3a1515; border-radius:2px; }
+
+    /* ══════════════════════════════════════════
+       2층 인터랙션: 오로라 드래그
+    ══════════════════════════════════════════ */
+    #floor2-scene {
+      position:absolute; inset:0;
+      background: radial-gradient(ellipse at 50% 60%, #0a0a2a 0%, #04040f 100%);
+      /* 🖼️ [2층 배경] 나중에: background: url('images/floor2-bg.jpg') center/cover */
+      overflow:hidden; cursor:crosshair; user-select:none;
+    }
+    #f2-hint { position:absolute; top:12px; left:0; right:0; text-align:center; color:rgba(200,180,255,.6); font-size:.72rem; letter-spacing:.15em; pointer-events:none; transition:opacity .6s; z-index:5; }
+    .aurora-blob { position:absolute; border-radius:50%; pointer-events:none; mix-blend-mode:screen; animation:auroraFade var(--dur,1.4s) ease-out forwards; }
+    @keyframes auroraFade { 0%{transform:scale(.4);opacity:.85;} 40%{transform:scale(1.1);opacity:.6;} 100%{transform:scale(1.6);opacity:0;} }
+    #f2-gauge-wrap { position:absolute; bottom:14px; left:50%; transform:translateX(-50%); width:140px; pointer-events:none; z-index:5; text-align:center; }
+    #f2-gauge-label { color:rgba(200,180,255,.4); font-size:.65rem; letter-spacing:.12em; margin-bottom:5px; }
+    #f2-gauge-bar { height:3px; background:rgba(255,255,255,.1); border-radius:2px; overflow:hidden; }
+    #f2-gauge-fill { height:100%; width:0%; border-radius:2px; background:linear-gradient(to right,#a060ff,#60c0ff,#80ffcc); transition:width .1s linear; }
+    #f2-clear-msg { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; background:rgba(5,3,20,.7); opacity:0; pointer-events:none; transition:opacity .7s; z-index:20; }
+    #f2-clear-msg.show { opacity:1; }
+    #f2-clear-msg .clear-emoji { font-size:2.5rem; margin-bottom:8px; }
+    #f2-clear-msg .clear-text { color:#c0a0ff; font-size:.82rem; letter-spacing:.2em; font-family:'Hahmlet',serif; }
+
+    /* ══════════════════════════════════════════
+       1층 인터랙션: 주스 잔
+    ══════════════════════════════════════════ */
+    #floor1-scene {
+      position:absolute; inset:0;
+      display:flex; flex-direction:column; align-items:center; justify-content:center;
+      /* 🖼️ [1층 배경] 나중에: background: url('images/floor1-bg.jpg') center/cover; */
+      background:linear-gradient(to bottom,#1a2a10 0%,#0e1a08 100%);
+      overflow:hidden; cursor:pointer; user-select:none;
+    }
+    #floor1-scene::before { content:''; position:absolute; bottom:0; left:0; right:0; height:35%; background:linear-gradient(to top,#0e1808,transparent); pointer-events:none; }
+
+    #f1-hint { position:absolute; top:12px; left:0; right:0; text-align:center; color:rgba(255,220,120,.75); font-size:.72rem; letter-spacing:.15em; pointer-events:none; transition:opacity .5s; }
+
+    .juice-cup { position:relative; width:80px; display:flex; flex-direction:column; align-items:center; z-index:5; }
+    .juice-cup.shake { animation:cupShake .18s ease; }
+    @keyframes cupShake { 0%{transform:rotate(0)scale(1);} 30%{transform:rotate(-7deg)scale(1.07);} 65%{transform:rotate(5deg)scale(1.07);} 100%{transform:rotate(0)scale(1);} }
+
+    .straw { width:6px; height:52px; background:linear-gradient(to bottom,#ff6060,#ff3030); border-radius:3px; transform:rotate(13deg); transform-origin:bottom center; margin-bottom:-10px; margin-left:20px; position:relative; z-index:6; }
+
+    .cup-top { width:80px; height:16px; background:#d0a060; border-radius:50%; border:3px solid #b08040; position:relative; z-index:4; }
+
+    .cup-body { width:80px; height:90px; border:4px solid #c09050; border-top:none; border-bottom:none; clip-path:polygon(5% 0%,95% 0%,88% 100%,12% 100%); position:relative; overflow:hidden; background:rgba(200,160,80,.1); }
+
+    .juice-fill { position:absolute; bottom:0; left:0; right:0; height:0%; background:linear-gradient(to top,#e05010 0%,#f06820 40%,#ff8830 80%,#ffaa50 100%); transition:height .25s cubic-bezier(.34,1.56,.64,1); }
+    .juice-fill::after { content:''; position:absolute; top:-4px; left:-10%; right:-10%; height:8px; background:rgba(255,180,80,.6); border-radius:50%; animation:waveSurface 1.2s ease-in-out infinite alternate; }
+    @keyframes waveSurface { from{transform:scaleX(1) translateY(0);} to{transform:scaleX(1.05) translateY(-2px);} }
+
+    .cup-bottom { width:56px; height:10px; background:#c09050; border-radius:0 0 4px 4px; border:3px solid #b08040; border-top:none; }
+
+    #f1-counter { position:absolute; bottom:14px; color:rgba(255,200,100,.6); font-size:.7rem; letter-spacing:.15em; pointer-events:none; }
+
+    #f1-overflow { position:absolute; inset:0; pointer-events:none; z-index:10; transition:background .8s ease; }
+    #f1-overflow.burst { background:radial-gradient(circle at 50% 45%,rgba(255,160,50,.6),rgba(255,80,10,.2) 60%,transparent 100%); }
+
+    .juice-drop { position:absolute; width:var(--s,8px); height:var(--s,8px); border-radius:50%; background:var(--c,#ff8030); pointer-events:none; z-index:8; top:var(--y,50%); left:var(--x,50%); animation:dropFly var(--d,.7s) ease-out forwards; }
+    @keyframes dropFly { 0%{transform:translate(0,0) scale(1);opacity:.9;} 100%{transform:translate(var(--tx,20px),var(--ty,-40px)) scale(.3);opacity:0;} }
+
+    #f1-clear-msg { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; background:rgba(10,5,2,.75); opacity:0; pointer-events:none; transition:opacity .6s; z-index:20; }
+    #f1-clear-msg.show { opacity:1; }
+    .clear-emoji { font-size:2.5rem; margin-bottom:8px; }
+    .clear-text { color:#f0ddb0; font-size:.85rem; letter-spacing:.15em; }
+
+    /* ══════════════════════════════════════════
+       3층 인터랙션: 비밀의 문틈
+    ══════════════════════════════════════════ */
+    #floor3-scene {
+      position:absolute; inset:0; overflow:hidden;
+      background: linear-gradient(to bottom, #0a0806 0%, #150e08 100%);
+      /* 🖼️ [3층 배경] 나중에: background: url('images/floor3-bg.jpg') center/cover */
+      display:flex; align-items:center; justify-content:center;
+      user-select:none;
+    }
+    /* 문 뒤 빛 (처음엔 안 보임) */
+    #f3-light {
+      position:absolute; inset:0;
+      background: radial-gradient(ellipse at 38% 50%, rgba(255,220,140,0) 0%, transparent 60%);
+      transition: background 0.3s ease;
+      pointer-events:none; z-index:1;
+    }
+    /* 문틈 빛 줄기 — 문이 열리는 오른쪽 가장자리 */
+    #f3-crack {
+      position:absolute;
+      top:12%; bottom:12%;
+      width:0px;
+      background: linear-gradient(to left, rgba(255,230,150,0.9), rgba(255,200,80,0.4), transparent);
+      left:50%; transform:translateX(50px);
+      filter: blur(3px);
+      pointer-events:none; z-index:3;
+      transition: width 0.15s ease;
+    }
+    /* 문 프레임 */
+    #f3-frame {
+      position:relative; z-index:4;
+      width:108px; height:160px;
+      background: #1a0e06;
+      border: 5px solid #3a2010;
+      border-radius: 6px 6px 0 0;
+      box-shadow: -6px 0 20px rgba(0,0,0,0.8), 6px 0 20px rgba(0,0,0,0.8);
+    }
+    /* 문 패널 (실제로 열리는 부분) */
+    #f3-door {
+      position:absolute; inset:0;
+      background: linear-gradient(135deg, #2a1608 0%, #1e0e06 50%, #150a04 100%);
+      border-radius: 3px 3px 0 0;
+      transform-origin: left center;
+      transform: perspective(400px) rotateY(0deg);
+      transition: none;
+      cursor: grab;
+      border-right: 2px solid #3a2010;
+    }
+    #f3-door:active { cursor: grabbing; }
+    /* 문 나뭇결 패턴 */
+    #f3-door::before {
+      content:'';
+      position:absolute; inset:6px;
+      border: 2px solid rgba(80,40,10,0.5);
+      border-radius:2px;
+    }
+    #f3-door::after {
+      content:'';
+      position:absolute; inset:16px;
+      border: 1px solid rgba(80,40,10,0.3);
+      border-radius:1px;
+    }
+    /* 문고리 */
+    #f3-knob {
+      position:absolute; right:14px; top:50%;
+      transform:translateY(-50%);
+      width:12px; height:12px;
+      background: radial-gradient(circle at 35% 35%, #e0c060, #907020);
+      border-radius:50%;
+      box-shadow:0 0 8px rgba(200,160,40,0.6), 2px 2px 4px rgba(0,0,0,0.5);
+      cursor:grab;
+    }
+    /* 문 힌트 */
+    #f3-hint {
+      position:absolute; bottom:14px; left:0; right:0;
+      text-align:center; color:rgba(200,160,100,.65);
+      font-size:.72rem; letter-spacing:.15em;
+      pointer-events:none; z-index:10; transition:opacity .5s;
+    }
+    /* 빛 입자 */
+    .light-particle {
+      position:absolute; border-radius:50%;
+      background: radial-gradient(circle, rgba(255,230,150,0.9), transparent 70%);
+      pointer-events:none; z-index:5;
+      animation:particleDrift var(--pd,2s) ease-out forwards;
+    }
+    @keyframes particleDrift {
+      0%   { transform:translate(0,0) scale(0.5); opacity:0.8; }
+      100% { transform:translate(var(--pdx,10px),var(--pdy,-30px)) scale(0.1); opacity:0; }
+    }
+    #f3-clear-msg {
+      position:absolute; inset:0; display:flex; flex-direction:column;
+      align-items:center; justify-content:center;
+      background:rgba(255,220,120,0.12); opacity:0; pointer-events:none;
+      transition:opacity .8s; z-index:20;
+    }
+    #f3-clear-msg.show { opacity:1; }
+
+    /* ══════════════════════════════════════════
+       4층 인터랙션: 멈춘 시간과 노을
+    ══════════════════════════════════════════ */
+    #floor4-scene {
+      position:absolute; inset:0; overflow:hidden;
+      display:flex; flex-direction:column; align-items:center; justify-content:center;
+      /* 🖼️ [4층 배경] 나중에: background: url('images/floor4-bg.jpg') center/cover */
+      background: linear-gradient(to bottom, #0a0812 0%, #120a18 100%);
+      transition: background 0.8s ease;
+      user-select:none; cursor:default;
+    }
+    #f4-hint {
+      position:absolute; top:12px; left:0; right:0; text-align:center;
+      color:rgba(220,180,120,.65); font-size:.72rem; letter-spacing:.15em;
+      pointer-events:none; transition:opacity .5s; z-index:5;
+    }
+    /* 시계 */
+    #f4-clock {
+      position:relative; width:110px; height:110px;
+      border-radius:50%;
+      background: radial-gradient(circle at 35% 30%, #2a2040, #0e0c1a);
+      border: 4px solid #4a3870;
+      box-shadow: 0 0 20px rgba(120,80,200,.3), inset 0 0 20px rgba(0,0,0,.5);
+      cursor:pointer;
+      transition: box-shadow 0.4s ease;
+    }
+    #f4-clock.holding {
+      box-shadow: 0 0 40px rgba(255,160,40,.6), 0 0 80px rgba(255,120,20,.3), inset 0 0 20px rgba(0,0,0,.3);
+    }
+    /* 시계 눈금 */
+    #f4-clock::before {
+      content:''; position:absolute; inset:6px; border-radius:50%;
+      background: repeating-conic-gradient(
+        rgba(255,255,255,.15) 0deg, rgba(255,255,255,.15) 1deg,
+        transparent 1deg, transparent 30deg
+      );
+    }
+    /* 시계 중심점 */
+    #f4-clock::after {
+      content:''; position:absolute; top:50%; left:50%;
+      transform:translate(-50%,-50%);
+      width:8px; height:8px; border-radius:50%;
+      background: #e0c080; z-index:5;
+      box-shadow:0 0 6px rgba(220,180,80,.8);
+    }
+    /* 시계 바늘 공통 */
+    .clock-hand {
+      position:absolute; bottom:50%; left:50%;
+      transform-origin: bottom center;
+      border-radius:3px 3px 0 0;
+    }
+    #f4-hour {
+      width:4px; height:28px;
+      background: #d0c0a0;
+      margin-left:-2px;
+      transform: rotate(0deg);
+    }
+    #f4-minute {
+      width:3px; height:38px;
+      background: #e0d0b0;
+      margin-left:-1.5px;
+      transform: rotate(90deg);
+    }
+    #f4-second {
+      width:2px; height:44px;
+      background: #ff6040;
+      margin-left:-1px;
+      box-shadow:0 0 4px rgba(255,80,40,.6);
+      transform: rotate(180deg);
+    }
+    /* 홀드 게이지 (시계 테두리가 채워지는 효과) */
+    #f4-ring {
+      position:absolute; inset:-6px; border-radius:50%;
+      background: conic-gradient(rgba(255,160,40,0.8) 0%, transparent 0%);
+      transition: none;
+      pointer-events:none; z-index:2;
+    }
+    /* 홀드 안내 텍스트 */
+    #f4-hold-label {
+      margin-top:14px; color:rgba(200,160,100,.5);
+      font-size:.68rem; letter-spacing:.2em;
+      font-family:'Cinzel',serif;
+      transition:color 0.4s;
+    }
+    #f4-hold-label.active { color:rgba(255,200,80,.9); }
+    /* 클리어 메시지 */
+    #f4-clear-msg {
+      position:absolute; inset:0; display:flex; flex-direction:column;
+      align-items:center; justify-content:center;
+      opacity:0; pointer-events:none; transition:opacity .8s; z-index:20;
+    }
+    #f4-clear-msg.show { opacity:1; }
+
+    /* ══════════════════════════════════════════
+       5층 인터랙션: 떨어지는 별 잡기
+    ══════════════════════════════════════════ */
+    #floor5-scene {
+      position:absolute; inset:0; overflow:hidden;
+      background: radial-gradient(ellipse at 50% 20%, #0c0820 0%, #04030e 100%);
+      /* 🖼️ [5층 배경] 나중에: background: url('images/floor5-bg.jpg') center/cover */
+      user-select:none;
+    }
+    /* 땅 바닥 경계선 */
+    #f5-ground {
+      position:absolute; bottom:0; left:0; right:0; height:28px;
+      background: linear-gradient(to top, #1a0e08, transparent);
+      border-top: 1px solid rgba(255,100,40,.15);
+      pointer-events:none; z-index:3;
+    }
+    /* 잡기 카운터 */
+    #f5-counter {
+      position:absolute; top:12px; left:50%; transform:translateX(-50%);
+      color:rgba(255,220,120,.7); font-size:.72rem; letter-spacing:.2em;
+      font-family:'Cinzel',serif; pointer-events:none; z-index:5;
+      text-shadow:0 0 10px rgba(255,200,80,.4);
+    }
+    /* 힌트 */
+    #f5-hint {
+      position:absolute; bottom:36px; left:0; right:0; text-align:center;
+      color:rgba(200,180,255,.55); font-size:.7rem; letter-spacing:.15em;
+      pointer-events:none; z-index:5; transition:opacity .5s;
+    }
+    /* 별 조각 — 4포인트 반짝이 별 모양 */
+    .falling-star {
+      position:absolute; cursor:pointer; z-index:4;
+      animation: fallDown var(--fall-dur, 2.5s) linear forwards;
+    }
+    /* 빛나는 글로우 배경 (원형, 흐릿하게) */
+    .falling-star::after {
+      content:'';
+      position:absolute; top:50%; left:50%;
+      width:var(--glow-size, 40px); height:var(--glow-size, 40px);
+      transform:translate(-50%,-50%);
+      border-radius:50%;
+      background: radial-gradient(circle,
+        rgba(255,240,160,.7) 0%,
+        rgba(255,200,60,.35) 45%,
+        transparent 75%);
+      pointer-events:none;
+    }
+    /* 실제 별 모양 (4포인트 다이아몬드 스파클) */
+    .star-body {
+      position:absolute; top:50%; left:50%;
+      transform:translate(-50%,-50%);
+      background: linear-gradient(135deg, #fff8d0, #ffdd60, #fff);
+      clip-path: polygon(
+        50% 0%,   55% 42%,
+        100% 50%, 55% 58%,
+        50% 100%, 45% 58%,
+        0% 50%,   45% 42%
+      );
+      filter: drop-shadow(0 0 5px rgba(255,230,100,.9))
+              drop-shadow(0 0 12px rgba(255,180,40,.7));
+      pointer-events:none;
+    }
+    /* 꼬리 (위쪽으로 뻗는 빛줄기) */
+    .star-trail {
+      position:absolute; left:50%; top:0;
+      transform:translateX(-50%) translateY(-100%);
+      width:3px;
+      background:linear-gradient(to top,
+        rgba(255,220,100,.7),
+        rgba(255,180,60,.3) 50%,
+        transparent 100%);
+      border-radius:2px;
+      pointer-events:none;
+    }
+    /* 반짝임 펄스 */
+    @keyframes starPulse {
+      0%,100% { filter:drop-shadow(0 0 4px rgba(255,230,100,.8)) drop-shadow(0 0 10px rgba(255,180,40,.6)); }
+      50%      { filter:drop-shadow(0 0 8px rgba(255,250,180,1))  drop-shadow(0 0 20px rgba(255,210,60,.9)); }
+    }
+    .star-body { animation: starPulse 0.7s ease-in-out infinite alternate; }
+
+    @keyframes fallDown {
+      0%   { transform:translateY(0) rotate(0deg);   opacity:1; }
+      88%  { opacity:1; }
+      100% { transform:translateY(var(--fall-dist,220px)) rotate(200deg); opacity:0; }
+    }
+    .falling-star:hover .star-body { transform:translate(-50%,-50%) scale(1.3); }
+    /* 잡았을 때 폭발 */
+    .catch-burst {
+      position:absolute; border-radius:50%; pointer-events:none; z-index:6;
+      background: radial-gradient(circle, rgba(255,240,120,.9), rgba(255,180,40,.4) 50%, transparent 100%);
+      animation:burstOut .5s ease-out forwards;
+    }
+    @keyframes burstOut {
+      0%   { transform:scale(0.2); opacity:1; }
+      100% { transform:scale(3);   opacity:0; }
+    }
+    /* 화면 점점 밝아지는 오버레이 */
+    #f5-glow {
+      position:absolute; inset:0; pointer-events:none; z-index:2;
+      background: radial-gradient(ellipse at 50% 40%, rgba(255,200,80,0), transparent);
+      transition: background 0.6s ease;
+    }
+    /* 클리어 */
+    #f5-clear-msg {
+      position:absolute; inset:0; display:flex; flex-direction:column;
+      align-items:center; justify-content:center;
+      opacity:0; pointer-events:none; transition:opacity .7s; z-index:20;
+      background:rgba(5,3,15,.6);
+    }
+    #f5-clear-msg.show { opacity:1; }
+
+    /* ══════════════════════════════════════════
+       6층 인터랙션: 숨어서 우는 괴물 (손전등)
+    ══════════════════════════════════════════ */
+    #floor6-scene {
+      position:absolute; inset:0; overflow:hidden;
+      background: #080510;
+      /* 🖼️ [6층 배경] 나중에: background: url('images/floor6-bg.jpg') center/cover */
+      cursor:none; user-select:none;
+    }
+    /* 손전등 어둠 오버레이 */
+    #f6-darkness {
+      position:absolute; inset:0; z-index:5; pointer-events:none;
+      background: rgba(0,0,0,0.97);
+      -webkit-mask-image: radial-gradient(circle 140px at var(--mx,50%) var(--my,50%), transparent 35%, black 90%);
+      mask-image:         radial-gradient(circle 140px at var(--mx,50%) var(--my,50%), transparent 35%, black 90%);
+      transition: -webkit-mask-image 0.04s, mask-image 0.04s;
+    }
+    /* 커서 손전등 아이콘 */
+    #f6-cursor {
+      position:absolute; z-index:8; pointer-events:none;
+      width:22px; height:22px;
+      background: radial-gradient(circle, rgba(255,250,220,.9) 0%, rgba(255,220,120,.4) 55%, transparent 100%);
+      border-radius:50%;
+      box-shadow:0 0 10px rgba(255,230,150,.7);
+      transform:translate(-50%,-50%);
+    }
+    /* 괴물 컨테이너 */
+    #f6-monster {
+      position:absolute; left:62%; top:48%;
+      transform:translate(-50%,-50%);
+      z-index:3; cursor:default;
+      display:flex; flex-direction:column; align-items:center;
+    }
+    /* 괴물 몸통 */
+    .m-body {
+      width:72px; height:68px;
+      background: linear-gradient(160deg, #5a3878, #3a2055);
+      border-radius:55% 55% 48% 48% / 60% 60% 45% 45%;
+      position:relative;
+      box-shadow: 0 0 0 rgba(120,60,180,0);
+      transition: box-shadow 0.5s, transform 0.5s;
+    }
+    .m-body.found {
+      box-shadow: 0 0 25px rgba(160,100,220,.6), 0 0 50px rgba(120,60,180,.3);
+      transform: scale(1.08);
+    }
+    /* 귀 */
+    .m-body::before, .m-body::after {
+      content:''; position:absolute; top:-14px;
+      width:16px; height:22px;
+      background: #4a2868;
+      border-radius:50% 50% 0 0;
+    }
+    .m-body::before { left:10px; transform:rotate(-12deg); }
+    .m-body::after  { right:10px; transform:rotate(12deg); }
+    /* 눈 */
+    .m-eye {
+      position:absolute; top:22px;
+      width:14px; height:14px;
+      background: #d0a0e8;
+      border-radius:50%;
+      overflow:hidden;
+    }
+    .m-eye::after {
+      content:''; position:absolute; top:3px; left:3px;
+      width:7px; height:7px; background:#1a0828; border-radius:50%;
+    }
+    .m-eye.left  { left:14px; }
+    .m-eye.right { right:14px; }
+    /* 눈물 */
+    .m-tear {
+      position:absolute; top:34px;
+      width:5px; height:12px;
+      background: linear-gradient(to bottom, rgba(180,150,220,.8), rgba(140,120,200,.4));
+      border-radius:0 0 50% 50%;
+      opacity:0; transition:opacity 0.6s;
+      animation: tearDrop 1.8s ease-in infinite;
+    }
+    .m-tear.left  { left:19px; animation-delay:0s; }
+    .m-tear.right { right:19px; animation-delay:0.9s; }
+    .m-body.found .m-tear { opacity:1; }
+    @keyframes tearDrop {
+      0%,30% { transform:scaleY(1) translateY(0); opacity:1; }
+      70%     { transform:scaleY(1.4) translateY(6px); opacity:0.5; }
+      100%    { transform:scaleY(0.3) translateY(10px); opacity:0; }
+    }
+    /* 입 */
+    .m-mouth {
+      position:absolute; bottom:14px; left:50%;
+      transform:translateX(-50%);
+      width:22px; height:8px;
+      border:3px solid rgba(200,150,230,.6);
+      border-top:none;
+      border-radius:0 0 14px 14px;
+    }
+    /* 괴물 배 (몸통 아래 둥근 부분) */
+    .m-belly {
+      width:54px; height:30px;
+      background: linear-gradient(to bottom, #4a3068, #3a2055);
+      border-radius:0 0 50% 50%;
+      margin-top:-6px;
+      position:relative;
+    }
+    /* 팔 (왼쪽, 오른쪽) */
+    .m-arm {
+      position:absolute; top:4px;
+      width:18px; height:28px;
+      background: #4a2868;
+      border-radius:10px;
+    }
+    .m-arm.left  { left:-16px; transform:rotate(18deg); transform-origin:top center; }
+    .m-arm.right { right:-16px; transform:rotate(-18deg); transform-origin:top center; }
+    /* 다리 */
+    .m-legs {
+      display:flex; gap:10px; margin-top:-2px;
+    }
+    .m-leg {
+      width:16px; height:22px;
+      background: #4a2868;
+      border-radius:0 0 10px 10px;
+    }
+    /* 발 */
+    .m-leg::after {
+      content:''; display:block;
+      width:20px; height:10px;
+      background: #3a2055;
+      border-radius:0 0 10px 10px;
+      margin-left:-2px; margin-top:-2px;
+    }
+    /* 위로 메시지 — 어둠 오버레이(z-index:5) 위에 배치 */
+    #f6-message {
+      position:absolute;
+      left:62%; top:calc(45% - 90px);
+      transform:translateX(-50%);
+      white-space:nowrap;
+      background:rgba(30,15,45,.92);
+      border:1px solid rgba(180,120,240,.35);
+      border-radius:8px; padding:9px 16px;
+      color:#d0b0f0; font-size:.75rem;
+      letter-spacing:.1em; line-height:1.9;
+      font-family:'Noto Serif KR',serif;
+      text-align:center;
+      opacity:0; pointer-events:none;
+      transition:opacity .5s;
+      z-index:7;
+      box-shadow:0 0 18px rgba(160,100,220,.25);
+    }
+    #f6-message::after {
+      content:''; position:absolute; top:100%; left:50%;
+      transform:translateX(-50%);
+      border:6px solid transparent;
+      border-top-color:rgba(130,80,200,.5);
+    }
+    #f6-message.show { opacity:1; }
+    /* 힌트 */
+    #f6-hint {
+      position:absolute; bottom:14px; left:0; right:0; text-align:center;
+      color:rgba(180,150,220,.45); font-size:.7rem; letter-spacing:.15em;
+      pointer-events:none; z-index:10; transition:opacity .5s;
+    }
+    /* 클리어 */
+    #f6-clear-msg {
+      position:absolute; inset:0; display:flex; flex-direction:column;
+      align-items:center; justify-content:center;
+      background:rgba(15,8,25,.8); opacity:0; pointer-events:none;
+      transition:opacity .8s; z-index:20;
+    }
+    #f6-clear-msg.show { opacity:1; }
+
+    /* ══════════════════════════════════════════
+       7층 인터랙션: 딜레마의 방
+    ══════════════════════════════════════════ */
+    #floor7-scene {
+      position:absolute; inset:0;
+      overflow:hidden; user-select:none; cursor:col-resize;
+    }
+    /* 왼쪽: 불안 — 차갑고 깊은 밤 */
+    #f7-left {
+      position:absolute; inset:0; right:50%;
+      background: linear-gradient(170deg, #020510 0%, #050d28 50%, #081838 100%);
+      overflow:hidden;
+    }
+    /* 빗방울 */
+    .f7-rain {
+      position:absolute; top:-20px;
+      width:1px;
+      background: linear-gradient(to bottom,
+        transparent, rgba(140,170,255,.4) 40%, rgba(100,130,220,.2));
+      border-radius:1px;
+      animation: rainFall var(--rd,1.2s) linear infinite;
+      animation-delay: var(--rdy,0s);
+    }
+    @keyframes rainFall {
+      from { transform:translateY(0) scaleY(1); opacity:.8; }
+      to   { transform:translateY(260px) scaleY(.6); opacity:0; }
+    }
+    /* 달 */
+    .f7-moon {
+      position:absolute; top:22%; left:30%;
+      width:36px; height:36px; border-radius:50%;
+      background: radial-gradient(circle at 38% 38%, #c8d8f8, #8098d0 60%, #4060a8);
+      box-shadow: 0 0 18px rgba(140,170,255,.25), 0 0 45px rgba(100,140,220,.1);
+      opacity:.5;
+    }
+    /* 오른쪽: 희망 — 따뜻한 새벽빛 */
+    #f7-right {
+      position:absolute; inset:0; left:50%;
+      background: linear-gradient(170deg, #150802 0%, #602010 35%, #c05018 60%, #e8922e 85%, #f0c050 100%);
+      overflow:hidden;
+    }
+    /* 빛 줄기 */
+    .f7-ray {
+      position:absolute; bottom:-10px;
+      width:var(--rw,40px);
+      background: linear-gradient(to top,
+        rgba(255,200,80,.2), rgba(255,160,40,.08) 55%, transparent);
+      border-radius:50% 50% 0 0;
+      transform-origin: bottom center;
+      animation: rayWave var(--rv,4s) ease-in-out infinite alternate;
+      animation-delay: var(--rvy,0s);
+    }
+    @keyframes rayWave {
+      from { transform:rotate(var(--ra,-3deg)) scaleX(1); opacity:.5; }
+      to   { transform:rotate(var(--rb,3deg)) scaleX(1.12); opacity:.9; }
+    }
+    /* 빛 먼지 */
+    .f7-mote {
+      position:absolute; border-radius:50%;
+      width:var(--ms,3px); height:var(--ms,3px);
+      background:rgba(255,210,100,.55);
+      animation: moteDrift var(--md,5s) ease-in-out infinite;
+      animation-delay:var(--mdy,0s);
+    }
+    @keyframes moteDrift {
+      0%,100% { transform:translate(0,0); opacity:.25; }
+      50%      { transform:translate(var(--mx,8px),var(--my,-16px)); opacity:.75; }
+    }
+    /* 슬라이더 라인 — 얇고 섬세하게 */
+    #f7-divider {
+      position:absolute; top:0; bottom:0; left:50%;
+      transform:translateX(-50%);
+      width:2px;
+      background: linear-gradient(to bottom,
+        transparent 0%,
+        rgba(255,255,255,.25) 8%,
+        rgba(255,255,255,.85) 35%,
+        white 50%,
+        rgba(255,255,255,.85) 65%,
+        rgba(255,255,255,.25) 92%,
+        transparent 100%);
+      box-shadow: 0 0 6px rgba(255,255,255,.5), 0 0 18px rgba(255,255,255,.15);
+      z-index:5;
+    }
+    /* 다이아몬드 마커 */
+    #f7-handle {
+      position:absolute; top:50%; left:50%;
+      transform:translate(-50%,-50%) rotate(45deg);
+      width:10px; height:10px;
+      background:white;
+      box-shadow:0 0 12px rgba(255,255,255,.9), 0 0 26px rgba(255,255,255,.35);
+    }
+    /* 안내 텍스트 */
+    #f7-guide {
+      position:absolute; top:12px; left:0; right:0;
+      text-align:center; color:rgba(255,255,255,.25);
+      font-size:.64rem; letter-spacing:.25em;
+      font-family:'Cinzel',serif;
+      pointer-events:none; z-index:6;
+    }
+    /* 하단 게이지 — 좌우 분리, 심플하게 */
+    #f7-gauges {
+      position:absolute; bottom:14px; left:0; right:0;
+      display:flex; justify-content:center; align-items:center; gap:10px;
+      pointer-events:none; z-index:6;
+    }
+    .f7-gauge-track {
+      width:62px; height:2px;
+      background:rgba(255,255,255,.1); border-radius:2px; overflow:hidden;
+    }
+    .f7-gauge-fill {
+      height:100%; width:0%; border-radius:2px;
+      transition:width .05s linear;
+    }
+    #f7-fill-dark  { background:linear-gradient(to right,#c06010,#f8c040); }
+    #f7-fill-light { background:linear-gradient(to right,#4060c0,#8aaaf8); }
+    .f7-gauge-sep {
+      width:4px; height:4px; border-radius:50%;
+      background:rgba(255,255,255,.2);
+    }
+    /* 클리어 */
+    #f7-clear-msg {
+      position:absolute; inset:0; display:flex; flex-direction:column;
+      align-items:center; justify-content:center;
+      background:rgba(8,5,18,.75); opacity:0; pointer-events:none;
+      transition:opacity .8s; z-index:20;
+    }
+    #f7-clear-msg.show { opacity:1; }
+
+    /* ══════════════════════════════════════════
+       8층 인터랙션: 용의 별자리 잇기
+    ══════════════════════════════════════════ */
+    #floor8-scene {
+      position:absolute; inset:0; overflow:hidden;
+      /* 🖼️ [8층 배경] 나중에: background: url('images/floor8-bg.jpg') center/cover */
+      background: radial-gradient(ellipse at 50% 30%, #0c0820 0%, #04030e 100%);
+      user-select:none;
+    }
+    /* 배경 별들 */
+    .bg-star {
+      position:absolute; border-radius:50%;
+      background:white; pointer-events:none;
+      animation:twinkle var(--dur,3s) ease-in-out infinite alternate;
+      animation-delay:var(--del,0s);
+    }
+    /* SVG 선 캔버스 */
+    #f8-svg {
+      position:absolute; inset:0; width:100%; height:100%;
+      pointer-events:none; z-index:2;
+      overflow:visible;
+    }
+    /* 별자리 연결선 */
+    .f8-line {
+      stroke:rgba(200,180,255,.0);
+      stroke-width:1.5;
+      stroke-linecap:round;
+      stroke-dasharray:120;
+      stroke-dashoffset:120;
+      animation:drawLine .6s ease-out forwards;
+      filter:drop-shadow(0 0 4px rgba(180,140,255,.6));
+    }
+    @keyframes drawLine {
+      to { stroke-dashoffset:0; stroke:rgba(200,180,255,.7); }
+    }
+    /* 클릭 가능한 별 */
+    .f8-star {
+      position:absolute; z-index:4; cursor:pointer;
+      transform:translate(-50%,-50%);
+    }
+    /* 별 외곽 glow 링 */
+    .f8-star-glow {
+      position:absolute; top:50%; left:50%;
+      transform:translate(-50%,-50%);
+      border-radius:50%;
+      background:rgba(200,170,255,0);
+      transition:background .3s, width .3s, height .3s;
+      pointer-events:none;
+    }
+    .f8-star:hover .f8-star-glow,
+    .f8-star.active .f8-star-glow {
+      width:46px; height:46px;
+      background:radial-gradient(circle, rgba(200,170,255,.25), transparent 70%);
+    }
+    /* 별 몸체 (4포인트) */
+    .f8-star-body {
+      width:var(--sz,18px); height:var(--sz,18px);
+      background:linear-gradient(135deg,#fff8e0,#e8d0ff,#fff);
+      clip-path:polygon(50% 0%,55% 42%,100% 50%,55% 58%,50% 100%,45% 58%,0% 50%,45% 42%);
+      filter:drop-shadow(0 0 5px rgba(220,190,255,.9)) drop-shadow(0 0 12px rgba(180,130,255,.6));
+      transition:transform .2s, filter .2s;
+      animation:starPulse8 1.8s ease-in-out infinite alternate;
+    }
+    @keyframes starPulse8 {
+      from { filter:drop-shadow(0 0 4px rgba(220,190,255,.8)) drop-shadow(0 0 10px rgba(180,130,255,.5)); }
+      to   { filter:drop-shadow(0 0 8px rgba(240,220,255,1))  drop-shadow(0 0 20px rgba(200,160,255,.8)); }
+    }
+    .f8-star:hover .f8-star-body { transform:scale(1.25); }
+    .f8-star.active .f8-star-body {
+      background:linear-gradient(135deg,#ffe080,#ffc040,#fff8c0);
+      filter:drop-shadow(0 0 8px rgba(255,220,80,1)) drop-shadow(0 0 20px rgba(255,180,40,.8));
+      animation:none;
+    }
+    .f8-star.done .f8-star-body {
+      background:linear-gradient(135deg,#ffd060,#ffaa20,#fff8c0);
+      filter:drop-shadow(0 0 6px rgba(255,200,60,.9)) drop-shadow(0 0 16px rgba(255,160,40,.6));
+    }
+    /* 순서 번호 */
+    .f8-star-num {
+      position:absolute; top:-18px; left:50%; transform:translateX(-50%);
+      color:rgba(200,170,255,.5); font-size:.6rem; letter-spacing:.1em;
+      font-family:'Cinzel',serif; pointer-events:none;
+      transition:color .3s;
+    }
+    .f8-star.active .f8-star-num,
+    .f8-star.done .f8-star-num { color:rgba(255,220,100,.9); }
+
+    /* 힌트 */
+    #f8-hint {
+      position:absolute; bottom:14px; left:0; right:0; text-align:center;
+      color:rgba(200,170,255,.5); font-size:.7rem; letter-spacing:.18em;
+      pointer-events:none; z-index:6; transition:opacity .5s;
+    }
+    /* 진행 표시 */
+    #f8-progress {
+      position:absolute; top:12px; left:50%; transform:translateX(-50%);
+      display:flex; gap:8px; z-index:6; pointer-events:none;
+    }
+    .f8-dot {
+      width:6px; height:6px; border-radius:50%;
+      background:rgba(200,170,255,.2);
+      transition:background .4s, box-shadow .4s;
+    }
+    .f8-dot.lit {
+      background:rgba(255,210,80,.9);
+      box-shadow:0 0 8px rgba(255,190,50,.8);
+    }
+    /* 완성 이펙트 오버레이 */
+    #f8-burst {
+      position:absolute; inset:0; pointer-events:none; z-index:5;
+      opacity:0; transition:opacity .6s;
+      background:radial-gradient(ellipse at 50% 45%, rgba(180,130,255,.25), transparent 70%);
+    }
+    #f8-burst.show { opacity:1; }
+    /* 용 실루엣 (완성 후) */
+    #f8-dragon-label {
+      position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
+      color:rgba(220,190,255,.0); font-size:.72rem; letter-spacing:.25em;
+      font-family:'Cinzel',serif; text-align:center; line-height:2;
+      pointer-events:none; z-index:6;
+      transition:color .8s, text-shadow .8s;
+    }
+    #f8-dragon-label.show {
+      color:rgba(220,190,255,.7);
+      text-shadow:0 0 20px rgba(180,130,255,.5);
+    }
+    /* 클리어 */
+    #f8-clear-msg {
+      position:absolute; inset:0; display:flex; flex-direction:column;
+      align-items:center; justify-content:center;
+      background:rgba(5,3,15,.7); opacity:0; pointer-events:none;
+      transition:opacity .8s; z-index:20;
+    }
+    #f8-clear-msg.show { opacity:1; }
+    @keyframes wrongShake {
+      0%,100%{transform:translate(-50%,-50%);}
+      25%{transform:translate(-54%,-50%);}
+      75%{transform:translate(-46%,-50%);}
+    }
+
+    /* ══════════════════════════════════════════
+       9층 인터랙션: 무채색 거실의 온기
+    ══════════════════════════════════════════ */
+    #floor9-scene {
+      position:absolute; inset:0; overflow:hidden;
+      display:flex; flex-direction:column; align-items:center; justify-content:center;
+      user-select:none;
+    }
+    /* 흑백 배경 → 컬러로 전환 */
+    #f9-bg {
+      position:absolute; inset:0;
+      background: linear-gradient(to bottom, #1a1a1a 0%, #2a2a2a 50%, #141414 100%);
+      /* 🖼️ [9층 배경] 나중에: background: url('images/floor9-bg.jpg') center/cover */
+      transition: filter 1.5s ease;
+      filter: grayscale(1) brightness(.7);
+    }
+    #f9-bg.colorize {
+      filter: grayscale(0) brightness(1);
+      background: linear-gradient(to bottom, #d4936a 0%, #c47a50 40%, #8b4c2a 100%);
+    }
+    /* 컬러 오버레이 (점진적으로 나타남) */
+    #f9-color-overlay {
+      position:absolute; inset:0; z-index:1; pointer-events:none;
+      background: linear-gradient(to bottom, #d4936a 0%, #c47a50 40%, #8b4c2a 100%);
+      opacity:0; transition:opacity .3s ease;
+    }
+    /* 바닥 러그 */
+    #f9-rug {
+      position:absolute; bottom:22%; left:50%;
+      transform:translateX(-50%);
+      width:200px; height:30px;
+      background: #333;
+      border-radius:50%;
+      filter:grayscale(1);
+      transition:background 1.5s ease, filter 1.5s ease, box-shadow 1.5s ease;
+      z-index:2;
+    }
+    #f9-rug.colorize {
+      background: #8b4513;
+      filter:grayscale(0);
+      box-shadow:0 0 20px rgba(180,80,20,.3);
+    }
+    /* 강아지 전체 — filter:grayscale로 한번에 흑백→컬러 */
+    #f9-dog {
+      position:relative; z-index:4; cursor:pointer;
+      display:flex; flex-direction:column; align-items:center;
+      filter:grayscale(1) brightness(.85);
+      transition:filter 0s; /* JS가 직접 제어 */
+    }
+    #f9-dog:hover { transform:scale(1.04); }
+    #f9-dog.pet { animation:dogBounce .22s ease; }
+    @keyframes dogBounce {
+      0%,100%{ transform:scale(1); }
+      50%    { transform:scale(1.06) translateY(-4px); }
+    }
+
+    /* 머리 — 둥글고 큰 비율 */
+    .dog-head {
+      position:relative; z-index:5;
+      width:70px; height:62px;
+      /* 털 질감: 여러 겹 radial-gradient */
+      background:
+        radial-gradient(ellipse at 38% 28%, #e8a840 0%, transparent 55%),
+        radial-gradient(ellipse at 65% 35%, #d49530 0%, transparent 45%),
+        radial-gradient(ellipse at 50% 60%, #b87820 0%, transparent 60%),
+        #c8860a;
+      border-radius:52% 52% 44% 44%;
+      margin-bottom:-12px;
+      box-shadow:
+        inset 0 -6px 12px rgba(0,0,0,.2),
+        inset 2px 3px 8px rgba(255,220,140,.25);
+    }
+
+    /* 귀 — 플로피 귀, 털 질감 */
+    .dog-ear {
+      position:absolute; top:14px;
+      width:22px; height:36px;
+      background:
+        radial-gradient(ellipse at 40% 30%, #b87828 0%, transparent 60%),
+        #9a6218;
+      border-radius:50% 50% 60% 60%;
+      box-shadow:inset 0 4px 8px rgba(0,0,0,.2);
+    }
+    .dog-ear.left  { left:-12px; transform:rotate(-12deg); transform-origin:top center; }
+    .dog-ear.right { right:-12px; transform:rotate(12deg);  transform-origin:top center; }
+    /* 귀 안쪽 */
+    .dog-ear::after {
+      content:''; position:absolute; top:6px; left:50%;
+      transform:translateX(-50%);
+      width:10px; height:20px;
+      background:rgba(220,120,80,.35);
+      border-radius:50%;
+    }
+
+    /* 눈 — 크고 초롱초롱 */
+    .dog-eye {
+      position:absolute; top:20px;
+      width:14px; height:14px;
+      background:#1a1010; border-radius:50%;
+      box-shadow:0 0 0 2px rgba(255,255,255,.12);
+    }
+    .dog-eye.left  { left:13px; }
+    .dog-eye.right { right:13px; }
+    .dog-eye::before {
+      content:''; position:absolute; top:2px; left:2px;
+      width:6px; height:6px;
+      background:rgba(255,255,255,.8); border-radius:50%;
+    }
+    .dog-eye::after {
+      content:''; position:absolute; bottom:2px; right:2px;
+      width:3px; height:3px;
+      background:rgba(255,255,255,.35); border-radius:50%;
+    }
+
+    /* 볼 홍조 */
+    .dog-cheek {
+      position:absolute; top:30px;
+      width:15px; height:9px;
+      border-radius:50%;
+      background:rgba(255,130,100,0);
+      transition:background .6s;
+    }
+    .dog-cheek.left  { left:7px; }
+    .dog-cheek.right { right:7px; }
+    .dog-cheek.flush { background:rgba(255,120,90,.45); }
+
+    /* 코 */
+    .dog-nose {
+      position:absolute; top:34px; left:50%;
+      transform:translateX(-50%);
+      width:15px; height:11px;
+      background:#1a0e0e; border-radius:50% 50% 42% 42%;
+      box-shadow:inset 0 2px 4px rgba(255,255,255,.1);
+    }
+    .dog-nose::after {
+      content:''; position:absolute; top:2px; left:3px;
+      width:5px; height:4px;
+      background:rgba(255,255,255,.3); border-radius:50%;
+    }
+
+    /* 입 */
+    .dog-mouth {
+      position:absolute; top:44px; left:50%;
+      transform:translateX(-50%);
+      width:18px; height:9px;
+      border:2px solid rgba(80,30,10,.5);
+      border-top:none;
+      border-radius:0 0 12px 12px;
+    }
+
+    /* 몸통 — 통통, 털 질감 */
+    .dog-body {
+      position:relative;
+      width:88px; height:60px;
+      background:
+        radial-gradient(ellipse at 35% 25%, #e0a040 0%, transparent 50%),
+        radial-gradient(ellipse at 70% 30%, #d09030 0%, transparent 45%),
+        radial-gradient(ellipse at 50% 80%, #a06010 0%, transparent 55%),
+        #c07818;
+      border-radius:42px 42px 30px 30px;
+      box-shadow:
+        inset 0 -8px 14px rgba(0,0,0,.25),
+        inset 3px 5px 10px rgba(255,220,130,.2);
+      z-index:4;
+    }
+    /* 배 무늬 (크림색 패치) */
+    .dog-body::before {
+      content:''; position:absolute; bottom:8px; left:50%;
+      transform:translateX(-50%);
+      width:42px; height:22px;
+      background:rgba(255,240,200,.22);
+      border-radius:50%;
+    }
+
+    /* 앞발 */
+    .dog-paw-front {
+      position:absolute; bottom:-16px;
+      width:20px; height:24px;
+      background:
+        radial-gradient(ellipse at 40% 20%, #c88020 0%, transparent 60%),
+        #a86010;
+      border-radius:0 0 14px 14px;
+      box-shadow:inset 0 -4px 6px rgba(0,0,0,.2);
+    }
+    .dog-paw-front.left  { left:14px; }
+    .dog-paw-front.right { left:48px; }
+    .dog-paw-front::after {
+      content:''; position:absolute; bottom:3px; left:50%;
+      transform:translateX(-50%);
+      width:13px; height:7px;
+      background:rgba(80,30,10,.3); border-radius:50%;
+    }
+
+    /* 뒷발 */
+    .dog-paw-back {
+      position:absolute; bottom:-12px;
+      width:24px; height:15px;
+      background:
+        radial-gradient(ellipse at 40% 30%, #c88020 0%, transparent 60%),
+        #a86010;
+      border-radius:0 0 16px 16px;
+    }
+    .dog-paw-back.left  { left:-6px; }
+    .dog-paw-back.right { right:-6px; }
+
+    /* 꼬리 */
+    .dog-tail {
+      position:absolute; top:-14px; right:-16px;
+      width:18px; height:30px;
+      background:
+        radial-gradient(ellipse at 40% 30%, #d09030 0%, transparent 60%),
+        #a87020;
+      border-radius:12px;
+      transform-origin:bottom center;
+      transform:rotate(22deg);
+    }
+    .dog-tail.wag { animation:tailWag .32s ease-in-out infinite alternate; }
+    @keyframes tailWag {
+      from { transform:rotate(8deg); }
+      to   { transform:rotate(48deg); }
+    }
+
+    /* 하트 파티클 */
+    .dog-heart {
+      position:absolute; z-index:6;
+      font-size:.9rem; pointer-events:none;
+      animation:heartFloat 1.2s ease-out forwards;
+    }
+    @keyframes heartFloat {
+      0%   { transform:translate(0,0) scale(.6); opacity:1; }
+      100% { transform:translate(var(--hx,0px),-45px) scale(1.1); opacity:0; }
+    }
+    /* 게이지 */
+    #f9-gauge-wrap {
+      position:absolute; bottom:10px; left:50%; transform:translateX(-50%);
+      width:160px; text-align:center; z-index:6; pointer-events:none;
+    }
+    #f9-gauge-label {
+      color:rgba(255,255,255,.35); font-size:.62rem; letter-spacing:.2em;
+      font-family:'Cinzel',serif; margin-bottom:5px;
+      transition:color .5s;
+    }
+    #f9-gauge-label.warm { color:rgba(255,200,100,.8); }
+    #f9-gauge-bar {
+      height:4px; background:rgba(255,255,255,.1); border-radius:2px; overflow:hidden;
+    }
+    #f9-gauge-fill {
+      height:100%; width:0%; border-radius:2px;
+      background:linear-gradient(to right, #ff8c60, #ffcc80);
+      transition:width .2s ease;
+      box-shadow:0 0 6px rgba(255,150,80,.5);
+    }
+    /* 클릭 힌트 */
+    #f9-hint {
+      position:absolute; top:12px; left:0; right:0; text-align:center;
+      color:rgba(255,255,255,.35); font-size:.7rem; letter-spacing:.18em;
+      pointer-events:none; z-index:6; transition:opacity .5s;
+    }
+    /* 클리어 */
+    #f9-clear-msg {
+      position:absolute; inset:0; display:flex; flex-direction:column;
+      align-items:center; justify-content:center;
+      background:rgba(0,0,0,0); opacity:0; pointer-events:none;
+      transition:opacity .8s; z-index:20;
+    }
+    #f9-clear-msg.show { opacity:1; }
+
+    /* ══════════════════════════════════════════
+       10층 엔딩: 거주증 발급
+    ══════════════════════════════════════════ */
+    #floor10-scene {
+      position:relative; width:100%;
+      background: radial-gradient(ellipse at 50% 30%, #0c0820 0%, #04030e 100%);
+      display:flex; flex-direction:column; align-items:center; justify-content:center;
+      gap:14px; padding:20px 16px;
+    }
+    /* 별 폭포 */
+    .f10-star-fall {
+      position:absolute; border-radius:50%; pointer-events:none;
+      background:white;
+      animation:f10Fall var(--fd,4s) linear infinite;
+      animation-delay:var(--fdy,0s);
+      opacity:0;
+    }
+    @keyframes f10Fall {
+      0%   { transform:translateY(-10px); opacity:0; }
+      10%  { opacity:var(--fo,.8); }
+      90%  { opacity:var(--fo,.8); }
+      100% { transform:translateY(250px); opacity:0; }
+    }
+    /* 제목 */
+    #f10-title {
+      color:#f0ddb0; font-family:'Hahmlet',serif; font-weight:700;
+      font-size:1.05rem; letter-spacing:.12em; text-align:center;
+      text-shadow:0 0 20px rgba(240,200,80,.5);
+      position:relative; z-index:3;
+    }
+    #f10-sub {
+      color:rgba(200,170,120,.6); font-size:.68rem; letter-spacing:.2em;
+      font-family:'Cinzel',serif; text-align:center;
+      position:relative; z-index:3;
+    }
+    /* 닉네임 입력 */
+    #f10-input-wrap {
+      display:flex; gap:8px; position:relative; z-index:3;
+      width:100%;
+    }
+    #f10-nickname {
+      flex:1; padding:9px 14px;
+      background:rgba(255,255,255,.06);
+      border:1px solid rgba(240,200,100,.3);
+      border-radius:4px; outline:none;
+      color:#f0ddb0; font-size:.82rem;
+      font-family:'Noto Serif KR',serif;
+      letter-spacing:.08em;
+      transition:border-color .2s, box-shadow .2s;
+    }
+    #f10-nickname::placeholder { color:rgba(240,200,100,.3); }
+    #f10-nickname:focus {
+      border-color:rgba(240,200,100,.7);
+      box-shadow:0 0 12px rgba(240,180,60,.2);
+    }
+    #f10-btn-issue {
+      padding:9px 18px;
+      background:#78280a; border:1px solid #b04020;
+      border-radius:4px; color:#f0ddb0;
+      font-size:.78rem; letter-spacing:.1em;
+      cursor:pointer; white-space:nowrap;
+      font-family:'Noto Serif KR',serif;
+      transition:background .2s;
+    }
+    #f10-btn-issue:hover { background:#9a3818; }
+    /* 거주증 캔버스 */
+    #f10-canvas-wrap {
+      position:relative; z-index:3;
+      border:1px solid rgba(240,200,80,.2);
+      border-radius:6px; overflow:hidden;
+      box-shadow:0 0 30px rgba(200,150,40,.15);
+      display:none; width:100%;
+    }
+    #f10-canvas { display:block; width:100%; height:auto; }
+    /* 다운로드 버튼 */
+    #f10-btn-dl {
+      padding:9px 22px;
+      background:linear-gradient(135deg,#78280a,#602008);
+      border:1px solid rgba(240,200,80,.4);
+      border-radius:4px; color:#f0ddb0;
+      font-size:.78rem; letter-spacing:.12em;
+      cursor:pointer; font-family:'Cinzel',serif;
+      transition:all .2s; display:none;
+    }
+    #f10-btn-dl:hover { background:linear-gradient(135deg,#9a3818,#782010); box-shadow:0 0 15px rgba(240,180,60,.2); }
+  </style>
+</head>
+<body>
+
+<div class="sky"></div>
+<div id="stars"></div>
+<div class="moon"></div>
+
+<div class="container">
+  <div class="header">
+    <p class="header-sub">신인류 · 빛나는 스트라이크</p>
+    <h1 class="header-title">영혼 빌리지 : 붉은 벽돌 저택</h1>
+    <p class="header-desc">창문을 열어 빛을 밝혀주세요</p>
+  </div>
+
+  <div class="building-wrap">
+    <div class="roof-wrap">
+      <!-- 굴뚝: roof-wrap 안에서 지붕 왼쪽에 고정 -->
+      <div class="chimney-wrap">
+        <div class="smoke">
+          <span style="--sd:5s;--ss:0s;--sx:6px;"></span>
+          <span style="--sd:4s;--ss:1.5s;--sx:-5px;"></span>
+          <span style="--sd:6s;--ss:2.8s;--sx:9px;"></span>
+        </div>
+        <div class="chimney-cap"></div>
+        <div class="chimney"></div>
+      </div>
+      <div class="roof-body"></div>
+      <div class="roof-window" id="win-10" data-floor="10">🏔️</div>
+    </div>
+
+    <div class="mansion">
+      <div class="floor">
+        <div class="window" id="win-9" data-floor="9"><span class="w-icon">🔒</span><span class="w-label">9F</span></div>
+      </div>
+      <div class="floor">
+        <div class="window" id="win-8" data-floor="8"><span class="w-icon">🔒</span><span class="w-label">8F</span></div>
+        <div class="window" id="win-7" data-floor="7"><span class="w-icon">🔒</span><span class="w-label">7F</span></div>
+      </div>
+      <div class="floor">
+        <div class="window" id="win-6" data-floor="6"><span class="w-icon">🔒</span><span class="w-label">6F</span></div>
+        <div class="window" id="win-5" data-floor="5"><span class="w-icon">🔒</span><span class="w-label">5F</span></div>
+      </div>
+      <div class="floor">
+        <div class="window" id="win-4" data-floor="4"><span class="w-icon">🔒</span><span class="w-label">4F</span></div>
+        <div class="window" id="win-3" data-floor="3"><span class="w-icon">🔒</span><span class="w-label">3F</span></div>
+      </div>
+      <div class="entrance">
+        <div class="porch-window" id="win-1" data-floor="1"><span class="pw-icon">🔒</span><span class="pw-label">1F</span></div>
+        <div class="front-door" id="front-door"><div class="door-arch"></div><div class="door-panel"><div class="door-knob"></div></div></div>
+        <div class="porch-window" id="win-2" data-floor="2"><span class="pw-icon">🔒</span><span class="pw-label">2F</span></div>
+      </div>
+    </div>
+
+    <div class="steps"><div class="step"></div><div class="step"></div><div class="step"></div></div>
+    <div class="ground"></div>
+  </div>
+
+  <div class="progress-wrap">
+    <p class="progress-label">창문에 불을 밝혀주세요 · <strong id="lit-count">0</strong> / 9 완료</p>
+    <div class="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
+  </div>
+</div>
+
+<p class="hint">✦ 창문을 클릭하여 방으로 들어가세요 ✦</p>
+
+<div class="overlay" id="overlay">
+  <div class="modal" id="modal">
+    <button class="modal-close" id="btn-close">✕</button>
+    <p class="modal-floor-tag" id="m-floor">─ 1층 ─</p>
+    <h2 class="modal-room-title" id="m-title">방 제목</h2>
+    <p class="modal-track" id="m-track">♪ 신인류 · 빛나는 스트라이크</p>
+    <hr class="modal-divider">
+    <div class="interaction-box" id="m-interaction"></div>
+    <div class="modal-actions" id="m-actions">
+      <button class="btn btn-primary"   id="btn-clear">✓ 클리어 (테스트용)</button>
+      <button class="btn btn-secondary" id="btn-later">나중에 올게요</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ 컨셉 포토 갤러리 ═══════════════ -->
+<div id="photo-overlay">
+  <div id="photo-modal">
+    <button id="photo-close">✕</button>
+    <div id="photo-header">
+      <p id="photo-title">영혼 빌리지 · 컨셉 포토</p>
+      <p id="photo-counter">1 / 8</p>
+    </div>
+    <div id="photo-viewport">
+      <div id="photo-track">
+        <!-- 슬라이드 8장 — src에 사진 경로 넣으면 됨 -->
+        <div class="photo-slide"><div class="ph"><span class="ph-num">①</span>🖼️<br><span style="font-size:.65rem;opacity:.5;">images/photo1.jpg</span></div><img src="images/photo1.jpg" alt="컨셉 포토 1" onerror="this.style.display='none'"></div>
+        <div class="photo-slide"><div class="ph"><span class="ph-num">②</span>🖼️<br><span style="font-size:.65rem;opacity:.5;">images/photo2.jpg</span></div><img src="images/photo2.jpg" alt="컨셉 포토 2" onerror="this.style.display='none'"></div>
+        <div class="photo-slide"><div class="ph"><span class="ph-num">③</span>🖼️<br><span style="font-size:.65rem;opacity:.5;">images/photo3.jpg</span></div><img src="images/photo3.jpg" alt="컨셉 포토 3" onerror="this.style.display='none'"></div>
+        <div class="photo-slide"><div class="ph"><span class="ph-num">④</span>🖼️<br><span style="font-size:.65rem;opacity:.5;">images/photo4.jpg</span></div><img src="images/photo4.jpg" alt="컨셉 포토 4" onerror="this.style.display='none'"></div>
+        <div class="photo-slide"><div class="ph"><span class="ph-num">⑤</span>🖼️<br><span style="font-size:.65rem;opacity:.5;">images/photo5.jpg</span></div><img src="images/photo5.jpg" alt="컨셉 포토 5" onerror="this.style.display='none'"></div>
+        <div class="photo-slide"><div class="ph"><span class="ph-num">⑥</span>🖼️<br><span style="font-size:.65rem;opacity:.5;">images/photo6.jpg</span></div><img src="images/photo6.jpg" alt="컨셉 포토 6" onerror="this.style.display='none'"></div>
+        <div class="photo-slide"><div class="ph"><span class="ph-num">⑦</span>🖼️<br><span style="font-size:.65rem;opacity:.5;">images/photo7.jpg</span></div><img src="images/photo7.jpg" alt="컨셉 포토 7" onerror="this.style.display='none'"></div>
+        <div class="photo-slide"><div class="ph"><span class="ph-num">⑧</span>🖼️<br><span style="font-size:.65rem;opacity:.5;">images/photo8.jpg</span></div><img src="images/photo8.jpg" alt="컨셉 포토 8" onerror="this.style.display='none'"></div>
+      </div>
+      <button class="photo-arrow" id="photo-prev">‹</button>
+      <button class="photo-arrow" id="photo-next">›</button>
+    </div>
+    <div id="photo-dots">
+      <div class="photo-dot active" data-idx="0"></div>
+      <div class="photo-dot" data-idx="1"></div>
+      <div class="photo-dot" data-idx="2"></div>
+      <div class="photo-dot" data-idx="3"></div>
+      <div class="photo-dot" data-idx="4"></div>
+      <div class="photo-dot" data-idx="5"></div>
+      <div class="photo-dot" data-idx="6"></div>
+      <div class="photo-dot" data-idx="7"></div>
+    </div>
+    <button id="photo-dl-btn">⬇ 현재 사진 저장</button>
+  </div>
+</div>
+
+<!-- ═══════════════ 가사 팝업 모달 ═══════════════ -->
+<div id="lyrics-overlay">
+  <div id="lyrics-modal">
+    <button id="lyrics-close">✕</button>
+    <p id="lyrics-floor-tag">─ 1층 ─</p>
+    <h2 id="lyrics-song-title">리턴 투 피크닉</h2>
+    <p id="lyrics-artist">신인류 · 빛나는 스트라이크</p>
+    <hr class="lyrics-divider">
+    <div id="lyrics-body"></div>
+    <div id="lyrics-actions">
+      <button class="lbtn lbtn-replay" id="lyrics-replay">↺ 다시 하기</button>
+      <button class="lbtn lbtn-close"  id="lyrics-exit">닫기</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ════════════════════════════════════════════
+   🎵 음악 파일 연결 (나중에 수정할 곳)
+   지금은 전부 null → 오류 없이 그냥 소리만 없음
+════════════════════════════════════════════ */
+const AUDIO = {
+  bgm: new Audio('audio/bgm.mp3'),
+  1:   new Audio('audio/floor1.mp3'),
+  2:   new Audio('audio/floor2.mp3'),
+  3:   new Audio('audio/floor3.mp3'),
+  4:   new Audio('audio/floor4.mp3'),
+  5:   new Audio('audio/floor5.mp3'),
+  6:   new Audio('audio/floor6.mp3'),
+  7:   new Audio('audio/floor7.mp3'),
+  8:   new Audio('audio/floor8.mp3'),
+  9:   new Audio('audio/floor9.mp3'),
+  10:  new Audio('audio/floor10.mp3'),
+};
+
+/* 층 음악 재생 (페이드인) */
+function playAudio(floor) {
+  const a = AUDIO[floor];
+  if (!a) return;
+  stopFloorAudio();
+  a.currentTime = 0;
+  a.volume = 0;
+  a.loop = true;
+  a.play().catch(()=>{});
+  /* 0.8초에 걸쳐 페이드인 */
+  let vol = 0;
+  const fade = setInterval(() => {
+    vol = Math.min(vol + 0.05, 1);
+    a.volume = vol;
+    if (vol >= 1) clearInterval(fade);
+  }, 40);
+}
+
+/* 층 음악만 멈추기 */
+function stopFloorAudio() {
+  [1,2,3,4,5,6,7,8,9,10].forEach(i => {
+    const a = AUDIO[i];
+    if (a) { a.pause(); a.currentTime = 0; }
+  });
+}
+
+/* BGM 시작 (페이드인) */
+function startBGM() {
+  const bgm = AUDIO.bgm;
+  if (!bgm || !bgm.paused) return;
+  bgm.loop = true;
+  bgm.volume = 0;
+  bgm.play().catch(()=>{});
+  let vol = 0;
+  const fade = setInterval(() => {
+    vol = Math.min(vol + 0.03, 0.55); /* BGM은 55% 볼륨 */
+    bgm.volume = vol;
+    if (vol >= 0.55) clearInterval(fade);
+  }, 60);
+}
+
+/* BGM 페이드아웃 후 멈춤 */
+function pauseBGM() {
+  const bgm = AUDIO.bgm;
+  if (!bgm || bgm.paused) return;
+  let vol = bgm.volume;
+  const fade = setInterval(() => {
+    vol = Math.max(vol - 0.05, 0);
+    bgm.volume = vol;
+    if (vol <= 0) { clearInterval(fade); bgm.pause(); }
+  }, 40);
+}
+
+/* BGM 재개 */
+function resumeBGM() {
+  const bgm = AUDIO.bgm;
+  if (!bgm) return;
+  if (bgm.paused) {
+    bgm.play().catch(()=>{});
+  }
+  let vol = bgm.volume;
+  const fade = setInterval(() => {
+    vol = Math.min(vol + 0.03, 0.55);
+    bgm.volume = vol;
+    if (vol >= 0.55) clearInterval(fade);
+  }, 60);
+}
+
+/* 첫 클릭 시 BGM 자동 시작 (브라우저 정책) */
+let bgmStarted = false;
+document.addEventListener('click', () => {
+  if (!bgmStarted) { bgmStarted = true; startBGM(); }
+}, { once: false });
+
+/* ─── 방 데이터 ──────────────────────── */
+const ROOMS = {
+  1:  {floor:'1층',        title:'리턴 투 피크닉',      hint:'주스 잔을 연타하면 음악이 시작됩니다!',      icon:'🧃'},
+  2:  {floor:'2층',        title:'미완성 효과',          hint:'마우스를 드래그하여 오로라를 그려보세요.',    icon:'🌌'},
+  3:  {floor:'3층',        title:'이상하고 아름다운',    hint:'문고리를 드래그하여 문을 살짝 열어보세요.',   icon:'🚪'},
+  4:  {floor:'4층',        title:'Huf',                  hint:'시계를 꾹 누르고 있으면 시간이 멈춥니다.',   icon:'🕰️'},
+  5:  {floor:'5층',        title:'정면돌파',             hint:'땅에 닿기 전 타이밍에 맞춰 별을 잡아보세요!',icon:'⭐'},
+  6:  {floor:'6층',        title:'Kaibutsu',             hint:'손전등으로 어둠 속 괴물을 찾아보세요.',      icon:'🔦'},
+  7:  {floor:'7층',        title:'두 개의 제안',         hint:'슬라이더로 빛과 어둠 사이를 오가보세요.',    icon:'⚖️'},
+  8:  {floor:'8층',        title:'용이 되고 싶은 아이',  hint:'별자리를 순서대로 잇어 용을 완성하세요.',    icon:'🐉'},
+  9:  {floor:'9층',        title:'송곳니',               hint:'강아지를 쓰다듬어 방에 색깔을 입혀보세요.',  icon:'🐾'},
+  10: {floor:'10층 전망대', title:'일인칭 관찰자 시점',  hint:'모든 창문에 불을 밝힌 자만이 오를 수 있는 곳.', icon:'🌟'},
+};
+
+/* ─── 가사 데이터 ─────────────────────
+   🎵 각 층 가사를 여기에 직접 입력해줘!
+   \n 은 줄바꿈, <strong>텍스트</strong> 는 굵게(후렴 강조용)
+──────────────────────────────────────── */
+const LYRICS = {
+  1: {
+    title: '리턴 투 피크닉',
+    body: `저기요 난 날고 있나요?
+<strong>주스를 마시며 들이켰던 꿈</strong>
+벌컥 문을 열어 보니
+옷이 젖어 날지 못한 새가 보이네요
+
+<strong>하루 이틀 아침 햇살로
+낯설었던 산책을 하고
+목이 말라 자유를 찾는 일 (낯설어)</strong>
+모든 게 처음이라 서툴렀지만
+
+그대는 아침이 두려워
+나를 붙잡고 우는데
+그 떨리는 새로
+흔들리는 불빛이 보여요
+찬란하게
+
+그대는 아침이 두려워
+나를 붙잡고 우는데
+그 떨리는 새로
+흔들리는 불빛이 보여요
+찬란하게
+
+저기요 난 날고 있나요?
+<strong>주스를 마시며 들이켰던 꿈</strong>
+벌컥 문을 열어 보니
+옷이 젖어 날지 못한 내가 보이네요`
+  },
+  2: {
+    title: '미완성 효과',
+    body: `훌쩍거리는 날도 아닌데
+훌쩍 네 향기가 날 듯 말 듯 해
+꾀병 같지만 오래전부터 난
+이미 앓아왔던 lovesick
+
+어느 날은 네 이름만 보일 때면
+손바닥으로 가리고
+우물쭈물 네 정거장을 지나고
+애타는 발걸음만 느려지네
+
+<strong>라디오에서 물결 같은 너의 모든 말들이
+재잘거리며 새벽의 입술로 나를 어질어질하게</strong>
+
+울렁거리지만 속으론 달아요
+하얀 내 거짓말투성이들
+모르는 게 나아 오래전부터 난
+이미 알아 왔던 mystery
+
+어느 날은 네 이름만 보일 때면
+손바닥으로 가리고
+우물쭈물 네 정거장을 지나고
+애타는 발걸음만 느려지네
+
+<strong>라디오에서 물결 같은 너의 모든 말들이
+재잘거리며 새벽의 입술로 나를 어질어질하게</strong>
+
+<strong>부재하는 마음은 커진 그리움 대신
+두근거리며 미완성의 모든 말로 어질어질하게</strong>`
+  },
+  3: {
+    title: '이상하고 아름다운',
+    body: `알고 있지만 말할 수 없어요
+당신과 만나기 전까지 말야
+더듬거리며 애정선을 따라서
+첫입을 열어 한마딜 던지는데
+
+뒹구는 행복을 아시는지요
+꽁지발을 들어도 모르는 게
+세상 속에서 우리들도 만남인 걸
+<strong>밤새워 침묵을 부르자</strong>
+
+<strong>우리에게 비밀은 더 깊은 애정이 아닐는지
+온 맘을 다해 도망치는 상상 소릴 내어 운명에 덤빌 테죠</strong>
+
+미라클 러버 정적을 깨우는
+환영받지 못한 사랑은 뭘까
+<strong>이상하고 아름다운 것은
+잠 못 이루고 꿈꾸네</strong>
+
+뒹구는 행복을 아시는지요
+꽁지발을 들어도 모르는 게
+세상 속에서 우리들도 만남인 걸
+<strong>밤새워 침묵을 부르자</strong>
+
+<strong>우리에게 비밀은 더 깊은 애정이 아닐는지
+온 맘을 다해 도망치는 상상 소릴 내어 운명에 덤빌 테죠</strong>
+
+<strong>이상하고도 아름다운 꿈
+아름답고도 어지러운 걸
+그대 잠에 들었어요
+끝없는 꿈속에</strong>`
+  },
+  4: {
+    title: 'Huf',
+    body: `맞아 그랬지 네 말이 틀린 적 없고
+다른 멋진 길을 내어줬어
+방황의 순간에 두 발을 멈추면
+빛나는 지금을 오래 볼 수 있대
+
+달려온 나의 청춘아
+허락해 줘 오늘만큼
+이 밤이 가진 것들과
+만족할 수만 있다면
+
+<strong>이를테면 노을 같은
+시간을 비추는 달과
+바람을 느껴주세요
+오늘 밤만큼만</strong>
+
+상처는 너의 매력이고
+오늘도 변함없는 모양
+기분 나쁜 기분도
+너를 보호한다고
+달리고 싶어질 거야 정신 좀 차려 줄래?
+구해줘 오래 볼 수 있게
+
+달려온 나의 청춘아
+허락해 줘 오늘만큼
+이 밤이 가진 것들과
+만족할 수만 있다면
+
+<strong>이를테면 노을 같은
+시간을 비추는 달과
+바람을 느껴주세요
+오늘 밤만큼만</strong>
+
+달려온 나의 청춘아
+허락해 줘 오늘만큼
+너만이 가진 것들과
+만족할 수만 있다면
+
+<strong>이를테면 노을 같은
+시간을 비추는 달과
+바람을 느껴주세요
+오늘 밤만큼만 (yeah)</strong>
+
+Sunny day, easy come, Dreams along the way
+Sunny day, easy come, Where we go, we'll stay`
+  },
+  5: {
+    title: '정면돌파',
+    body: `Rush Rush
+마지막 정면 돌파
+어리광이 난무했던
+무승부의 날들
+
+상실
+남아 있는 잔유물과
+아름다운 눈을 가진 행성 (여기 있어)
+거짓말을 하던 나의 행운이여
+
+No More Sunrise
+사랑만으론 안 통해
+마음 둘 곳 정할 데가 어디도 없어
+<strong>입술을 깨물듯 나와의 충돌
+그냥 떠도는 춤을 추자</strong>
+
+<strong>Like a Flash
+마음 가는 대로 해
+정답은 나인 걸
+항복은 나의 날아올라 찬스</strong>
+
+전율
+남아 있는 감정과
+밀고 당기는 힘 이대로
+놓칠 것만 같아 손을 잡아 줘요
+
+No More Sunrise
+사랑만으론 안 통해
+마음 둘 곳 정할 데가 어디도 없어
+<strong>입술을 깨물듯 나와의 충돌
+그냥 떠도는 춤을 추자</strong>
+
+정면돌파하러 간다
+우리들의 화음으로
+정면돌파하러 간다
+우리들의 화음으로
+
+<strong>그냥 춤을 추자, 그냥 춤을 추자
+그냥 춤을 추자, 그냥 춤을 추자</strong>`
+  },
+  6: {
+    title: 'Kaibutsu',
+    body: `<strong>마음속에 내전했지
+수도 없이 단련했지
+야수 같은 목소리와
+귀엽지 않은 몸짓</strong>
+
+내 표정은 아련한데
+다 보지 않고 절레절레해
+최악과 최고의 사이
+우리 모두 상처를 받았어
+
+달콤한 말로 서둘러 서로를 속이려 했었지
+잘라도 자라나는 머리카락을 보며 위안 삼으려 했네
+
+Say (ho) 봤니 (saw)
+그렇담 머리 위로 손 Clap Clap
+Say (ho) 봤니 (saw)
+마냥 귀여운 너니까 Clap Clap
+
+<strong>까만 달과 춤을 삼킨
+어둠 속의 메아리들
+출렁거리는 하품에
+자꾸 흔들리는 몸짓</strong>
+
+내 표정은 아련한데
+다 보지 않고 절레절레해
+최악과 최고의 사이
+우리 모두 상처를 받았어
+
+달콤한 말로 서둘러 서로를 속이려 했었지
+잘라도 자라나는 머리카락을 보며 위안 삼으려 했네
+
+Say (ho) 봤니 (saw)
+그렇담 머리 위로 손 Clap Clap
+Say (ho) 봤니 (saw)
+마냥 귀여운 너니까 Hands up
+Say (ho) 봤니 (saw)
+그렇담 머리 위로 손 Clap Clap
+Say (ho) 봤니 (saw)
+마냥 귀여운 너니까 Hands up`
+  },
+  7: {
+    title: '두 개의 제안',
+    body: `<strong>짙은 눈을 가진 밤
+모호하게 빛나네</strong>
+사물들에 가려진
+반짝이는 점들로
+벗어나고 말았죠
+
+주의를 기울이면 보이는 것
+살면서 처음 겪어본 일이고
+
+<strong>나를 끌어당기면
+무너지기란 쉬워</strong>
+석연하게 비춰진
+깊은 너의 눈망울
+
+<strong>짙은 눈을 가진 밤
+모호하게 빛나네</strong>
+사물들에 가려진
+반짝이는 점들로
+벗어나고 말았죠`
+  },
+  8: {
+    title: '용이 되고 싶은 아이',
+    body: `<strong>무구한 눈으로 나를 바라봐 주는 당신과
+이런저런 이유 같은 집을 만들어</strong>
+
+평범한 눈인사
+오갈 데 없는 맘을 더하면
+사이 좋은 잔열만 남겠지
+
+쏟아지는 햇살은
+그저 하염없이 녹아내려
+멋쩍은 환상들
+저기 마음의 창 너머로
+
+앞날을 향한 붉은 루비
+노란 갑옷 입은 힘찬 어깨 위
+
+용맹한 황금 날개
+다이아몬드 같은 눈
+<strong>내 보물을 지켜주는 외로운 순간</strong>
+
+굳건한 바위 심장
+에메랄드 푸른 숲
+<strong>불꽃 속으로 비춰진 자유 찾아</strong>`
+  },
+  9: {
+    title: '송곳니',
+    body: `<strong>또 같은 말을 한번 깨물어요
+네게 어떤 것도 물을 수 없지만</strong>
+아쉬운 것들 너무도 많았는데
+마냥 속상할 틈조차 비좁았던
+
+허술한 마음 모두 안고
+두 눈을 감은 채 하늘을 봐
+마음이 단단히 잠긴 사람도
+불안 대신 별을 세는구나
+
+<strong>넌 볼수록 빛나는 소중한 아이야
+내 맘이 모자르지 않니</strong>
+우주보다 드넓은 너의 하루 끝에서
+내 맘이 모자르지 않을까
+
+<strong>저 모서리에 작게 울부짖는
+너의 작은 방은 항상 깜깜했지
+오묘한 그 얼룩 빛바랜 색들도
+점점 선명해져 생긴 소동 같아</strong>
+
+허술한 마음 모두 안고
+두 눈을 감은 채 하늘을 봐
+마음이 단단히 잠긴 사람도
+불안 대신 별을 세는구나
+
+<strong>넌 볼수록 빛나는 소중한 아이야
+내 맘이 모자르지 않니</strong>
+우주보다 드넓은 너의 하루 끝에서
+내 맘이 모자르지 않을까
+
+ah ah ah
+woo woo woo
+doo doo doo
+above a blinding star
+네 발걸음 춤을 추자
+
+<strong>겁이 나는 울음이었지
+뜨거운 네 손을 잡으면
+다정히 내 두 눈에 가득 채워진
+love is all love wins all
+네겐 모자르지 않을 거야</strong>`
+  },
+  10: {
+    title: '일인칭 관찰자 시점',
+    body: `세상을 미워해
+속이 텅텅 시리고 시려서 떠나야만 사는 우리를
+
+어떻게 미워해
+하얀빛으로 소멸한다는 슬픈 규칙
+더 이상 외면해도 괜찮을 거야
+
+내 머릿속에 뜨거운 생각이 하루 살고 죽어도
+주어진 삶의 의미가 있잖아
+
+<strong>믿었던 지금 이 음악이 흘러나와
+비틀거리는 시에 몸을 맡겨</strong>
+어제와는 다른 똑같은 스물아홉 날에
+기댈 수 있는 지금인 거야
+
+이별을 미워해
+다신 오지 않을 순간들도 떠올리면 알게 될 거야
+
+내 머릿속에 뜨거운 생각이 하루 살고 죽어도
+주어진 삶의 의미가 있잖아
+
+<strong>믿었던 지금 이 음악이 흘러나와
+비틀거리는 시에 몸을 맡겨</strong>
+어제와는 다른 똑같은 스물아홉 날에
+기댈 수 있는 지금인 거야
+
+사랑해 너를 사랑해
+어딘가 달라도
+우리의 마음은 변치 않을게
+어제와는 다른 똑같은 스물아홉 날에
+기댈 수 있는 우리가 있잖아
+
+<strong>너의 기쁨이 나의 행복
+이어질 멋진 무대에
+끝없는 힘을 보여줄 거야
+기댈 수 있는 사랑이 있기에</strong>`
+  },
+};
+
+/* ─── 상태 ───────────────────────────── */
+const state = { litWindows: new Set(), currentFloor: null };
+
+/* ─── 별 생성 ────────────────────────── */
+(function(){
+  const c = document.getElementById('stars');
+  for(let i=0;i<140;i++){
+    const el=document.createElement('div');
+    el.className='star';
+    const sz=Math.random()*2.4+0.4;
+    el.style.cssText=`left:${Math.random()*100}%;top:${Math.random()*80}%;width:${sz}px;height:${sz}px;--dur:${(Math.random()*3.5+1.5).toFixed(1)}s;--delay:${(Math.random()*5).toFixed(1)}s;--lo:${(Math.random()*.15+.05).toFixed(2)};--hi:${(Math.random()*.5+.5).toFixed(2)};`;
+    c.appendChild(el);
+  }
+})();
+
+/* ─── 창문 불 켜기 ───────────────────── */
+function lightUp(floor){
+  if(floor===10||state.litWindows.has(floor)){
+    /* 이미 클리어한 층 → 가사 팝업만 다시 띄우기 */
+    if(floor!==10) showLyrics(floor);
+    return;
+  }
+  state.litWindows.add(floor);
+  const w=document.getElementById(`win-${floor}`);
+  if(w){
+    w.classList.add('lit');
+    const ic=w.querySelector('.w-icon,.pw-icon');
+    if(ic)ic.textContent=ROOMS[floor].icon;
+  }
+  updateProgress();
+  if(state.litWindows.size>=9)setTimeout(unlockRooftop,800);
+  /* 클리어 직후 가사 팝업 */
+  setTimeout(()=>showLyrics(floor), 600);
+}
+function unlockRooftop(){
+  const w=document.getElementById('win-10');
+  if(w){w.classList.add('lit');w.textContent='🌟';}
+}
+function updateProgress(){
+  const n=Math.min(state.litWindows.size,9);
+  document.getElementById('lit-count').textContent=n;
+  document.getElementById('progress-fill').style.width=`${(n/9)*100}%`;
+}
+
+/* ─── 모달 열기 ──────────────────────── */
+function openModal(floor){
+  const room=ROOMS[floor];
+  if(!room)return;
+  state.currentFloor=floor;
+  document.getElementById('m-floor').textContent=`─ ${room.floor} ─`;
+  document.getElementById('m-title').textContent=room.title;
+  document.getElementById('m-track').textContent=`♪ 신인류 · 빛나는 스트라이크`;
+
+  /* 🎵 층 입장 즉시 음악 재생 (BGM 페이드아웃) */
+  if (floor !== 10 && AUDIO[floor]) {
+    pauseBGM();
+    playAudio(floor);
+  }
+
+  const box=document.getElementById('m-interaction');
+  const btnClear=document.getElementById('btn-clear');
+
+  if(floor===10){
+    if(state.litWindows.size<9){
+      box.innerHTML=`<div class="locked-content"><div class="locked-icon">🔐</div><p class="locked-text">1층부터 9층까지 모든 창문에 불을 밝혀야<br>전망대의 문이 열립니다.<br><br>현재 <strong>${state.litWindows.size} / 9</strong>층 클리어</p></div>`;
+      btnClear.style.display='none';
+    } else {
+      box.classList.add('floor10');
+      renderFloor10(box);
+      btnClear.style.display='none';
+      setTimeout(()=>showLyrics(10), 500);
+    }
+  } else if(state.litWindows.has(floor)){
+    /* 이미 클리어한 방 → 재도전 가능 */
+    switch(floor){
+      case 1: renderFloor1(box); btnClear.style.display='none'; break;
+      case 2: renderFloor2(box); btnClear.style.display='none'; break;
+      case 3: renderFloor3(box); btnClear.style.display='none'; break;
+      case 4: renderFloor4(box); btnClear.style.display='none'; break;
+      case 5: renderFloor5(box); btnClear.style.display='none'; break;
+      case 6: renderFloor6(box); btnClear.style.display='none'; break;
+      case 7: renderFloor7(box); btnClear.style.display='none'; break;
+      case 8: renderFloor8(box); btnClear.style.display='none'; break;
+      case 9: renderFloor9(box); btnClear.style.display='none'; break;
+      default: break;
+    }
+  } else {
+    switch(floor){
+      case 1: renderFloor1(box); btnClear.style.display='none'; break;
+      case 2: renderFloor2(box); btnClear.style.display='none'; break;
+      case 3: renderFloor3(box); btnClear.style.display='none'; break;
+      case 4: renderFloor4(box); btnClear.style.display='none'; break;
+      case 5: renderFloor5(box); btnClear.style.display='none'; break;
+      case 6: renderFloor6(box); btnClear.style.display='none'; break;
+      case 7: renderFloor7(box); btnClear.style.display='none'; break;
+      case 8: renderFloor8(box); btnClear.style.display='none'; break;
+      case 9: renderFloor9(box); btnClear.style.display='none'; break;
+      default:
+        box.innerHTML=`<div style="text-align:center;line-height:2.2;"><div style="font-size:2rem;margin-bottom:6px;">${room.icon}</div><div style="color:rgba(255,255,255,.5);font-size:.8rem;">${room.hint}</div><div style="color:rgba(255,255,255,.2);font-size:.7rem;margin-top:10px;">미니 인터랙션 구현 예정</div></div>`;
+        btnClear.style.display='inline-block';
+        btnClear.textContent='✓ 클리어 (테스트용)';
+    }
+  }
+  document.getElementById('overlay').classList.add('open');
+}
+
+/* ════════════════════════════════════════════
+   ★ 10층 엔딩: 영혼 빌리지 거주증 발급
+   닉네임 입력 → Canvas로 거주증 생성 → 다운로드
+════════════════════════════════════════════ */
+function renderFloor10(box) {
+  box.innerHTML = `
+    <div id="floor10-scene">
+      <p id="f10-title">🌟 영혼 빌리지 : 붉은 벽돌 저택<br>모든 방의 빛을 밝혔습니다</p>
+      <p id="f10-sub">✦ 거주증을 발급받으세요 ✦</p>
+      <div id="f10-input-wrap">
+        <input id="f10-nickname" type="text" maxlength="12"
+          placeholder="닉네임을 입력하세요" autocomplete="off"/>
+        <button id="f10-btn-issue">발급하기</button>
+      </div>
+      <div id="f10-canvas-wrap">
+        <canvas id="f10-canvas" width="360" height="220"></canvas>
+      </div>
+      <button id="f10-btn-dl">⬇ 거주증 저장하기</button>
+      <div style="margin-top:20px;padding-top:16px;border-top:1px solid rgba(255,255,255,.07);">
+        <p style="color:rgba(180,140,255,.45);font-size:.64rem;letter-spacing:.3em;font-family:'Cinzel',serif;margin-bottom:12px;text-align:center;">✦ 일인칭 관찰자 시점 ✦</p>
+        <div id="f10-lyrics-body" style="color:rgba(220,200,240,.7);font-size:.85rem;line-height:2.4;font-family:'Noto Serif KR',serif;font-weight:300;white-space:pre-line;letter-spacing:.04em;"></div>
+      </div>
+    </div>`;
+
+  /* 별 폭포 생성 */
+  const scene = document.getElementById('floor10-scene');
+  for (let i = 0; i < 30; i++) {
+    const s = document.createElement('div');
+    s.className = 'f10-star-fall';
+    const sz = Math.random() * 2 + 1;
+    s.style.cssText = `
+      width:${sz}px; height:${sz}px;
+      left:${Math.random()*100}%;
+      top:${Math.random()*20}%;
+      --fd:${(Math.random()*4+3).toFixed(1)}s;
+      --fdy:${(Math.random()*4).toFixed(1)}s;
+      --fo:${(Math.random()*.6+.3).toFixed(2)};`;
+    scene.appendChild(s);
+  }
+
+  const canvas   = document.getElementById('f10-canvas');
+  const ctx      = canvas.getContext('2d');
+  const btnIssue = document.getElementById('f10-btn-issue');
+  const btnDl    = document.getElementById('f10-btn-dl');
+  const canvasWrap = document.getElementById('f10-canvas-wrap');
+  const input    = document.getElementById('f10-nickname');
+
+  function drawCertificate(nickname) {
+    const W = canvas.width, H = canvas.height;
+    ctx.clearRect(0, 0, W, H);
+
+    /* 배경 */
+    const bg = ctx.createLinearGradient(0, 0, W, H);
+    bg.addColorStop(0,   '#0c0820');
+    bg.addColorStop(0.5, '#180d30');
+    bg.addColorStop(1,   '#0a0515');
+    ctx.fillStyle = bg;
+    ctx.fillRect(0, 0, W, H);
+
+    /* 별 배경 */
+    for (let i = 0; i < 60; i++) {
+      const x = Math.random() * W;
+      const y = Math.random() * H;
+      const r = Math.random() * 1.2 + 0.3;
+      ctx.beginPath();
+      ctx.arc(x, y, r, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(255,255,255,${(Math.random()*.6+.2).toFixed(2)})`;
+      ctx.fill();
+    }
+
+    /* 테두리 이중 */
+    ctx.strokeStyle = 'rgba(240,200,80,.6)';
+    ctx.lineWidth = 1.5;
+    ctx.strokeRect(10, 10, W-20, H-20);
+    ctx.strokeStyle = 'rgba(240,200,80,.2)';
+    ctx.lineWidth = 1;
+    ctx.strokeRect(15, 15, W-30, H-30);
+
+    /* 코너 장식 */
+    [[22,22],[W-22,22],[22,H-22],[W-22,H-22]].forEach(([x,y]) => {
+      ctx.fillStyle = 'rgba(240,200,80,.7)';
+      ctx.font = '10px serif';
+      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.fillText('✦', x, y);
+    });
+
+    /* 상단 소제목 */
+    ctx.fillStyle = 'rgba(200,160,80,.7)';
+    ctx.font = '11px serif';
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText('신인류  ·  빛나는 스트라이크', W/2, 40);
+
+    /* 메인 타이틀 */
+    ctx.fillStyle = '#f0ddb0';
+    ctx.font = 'bold 20px serif';
+    ctx.shadowColor = 'rgba(240,200,80,.6)';
+    ctx.shadowBlur = 12;
+    ctx.fillText('영혼 빌리지', W/2, 70);
+    ctx.shadowBlur = 0;
+
+    /* 부제목 */
+    ctx.fillStyle = 'rgba(200,170,110,.55)';
+    ctx.font = '12px serif';
+    ctx.fillText('SOUL VILLAGE', W/2, 90);
+
+    /* 구분선 */
+    ctx.strokeStyle = 'rgba(240,200,80,.3)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(55, 104); ctx.lineTo(W-55, 104);
+    ctx.stroke();
+
+    /* 거주증 */
+    ctx.fillStyle = 'rgba(220,190,120,.5)';
+    ctx.font = '10px serif';
+    ctx.fillText('RESIDENT CERTIFICATE', W/2, 118);
+
+    /* 닉네임 — 길이에 따라 크기 조정 */
+    const fontSize = nickname.length > 8 ? 18 : 22;
+    ctx.fillStyle = '#f0ddb0';
+    ctx.font = `bold ${fontSize}px serif`;
+    ctx.shadowColor = 'rgba(240,200,80,.5)';
+    ctx.shadowBlur = 18;
+    ctx.fillText(nickname, W/2, 150);
+    ctx.shadowBlur = 0;
+
+    /* 구분선 */
+    ctx.strokeStyle = 'rgba(240,200,80,.2)';
+    ctx.beginPath();
+    ctx.moveTo(75, 165); ctx.lineTo(W-75, 165);
+    ctx.stroke();
+
+    /* 하단 문구 */
+    ctx.fillStyle = 'rgba(180,150,90,.5)';
+    ctx.font = '10px serif';
+    ctx.fillText('붉은 벽돌 저택의 모든 방을 밝힌 이에게', W/2, 182);
+
+    /* 날짜 */
+    const today = new Date();
+    const dateStr = `${today.getFullYear()}.${String(today.getMonth()+1).padStart(2,'0')}.${String(today.getDate()).padStart(2,'0')}`;
+    ctx.fillStyle = 'rgba(180,150,90,.4)';
+    ctx.font = '9px serif';
+    ctx.fillText(dateStr, W/2, 200);
+  }
+
+  /* 발급 버튼 */
+  btnIssue.addEventListener('click', () => {
+    const nick = input.value.trim();
+    if (!nick) { input.focus(); input.style.borderColor='rgba(255,100,80,.7)'; return; }
+    input.style.borderColor = 'rgba(240,200,100,.3)';
+
+    /* 폰트 완전히 로드된 후 캔버스 그리기 */
+    document.fonts.ready.then(() => {
+      drawCertificate(nick);
+      canvasWrap.style.display = 'block';
+      btnDl.style.display = 'inline-block';
+      playAudio(10);
+    });
+  });
+
+  /* 다운로드 버튼 — toBlob 방식 (더 안정적) */
+  btnDl.addEventListener('click', () => {
+    const nick = input.value.trim() || '영혼빌리지';
+    canvas.toBlob(blob => {
+      if (!blob) { alert('저장에 실패했어요. 다시 시도해주세요.'); return; }
+      const url  = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.download = `영혼빌리지_거주증_${nick}.png`;
+      link.href = url;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    }, 'image/png');
+  });
+
+  /* Enter 키로 발급 */
+  /* 10층 가사 표시 */
+  const f10lb = document.getElementById('f10-lyrics-body');
+  if (f10lb && LYRICS[10]) f10lb.innerHTML = LYRICS[10].body.replace(/\n/g,'<br>');
+
+  input.addEventListener('keydown', e => {
+    if (e.key === 'Enter') btnIssue.click();
+  });
+}
+
+/* ════════════════════════════════════════════
+   ★ 9층 인터랙션: 무채색 거실의 온기
+   강아지를 클릭(쓰다듬기)할수록 게이지가 차오르고
+   100%가 되면 방 전체가 컬러로 변함
+════════════════════════════════════════════ */
+function renderFloor9(box) {
+  const NEED  = 20;   // 몇 번 쓰다듬으면 클리어
+  let count   = 0;
+  let cleared = false;
+
+  box.innerHTML = `
+    <div id="floor9-scene">
+      <div id="f9-bg"></div>
+      <div id="f9-color-overlay"></div>
+      <div id="f9-rug"></div>
+
+      <div id="f9-dog">
+        <!-- 머리 -->
+        <div class="dog-head" id="f9-head">
+          <div class="dog-ear left"  id="f9-ear-l"></div>
+          <div class="dog-ear right" id="f9-ear-r"></div>
+          <div class="dog-eye left"></div>
+          <div class="dog-eye right"></div>
+          <div class="dog-cheek left"  id="f9-cheek-l"></div>
+          <div class="dog-cheek right" id="f9-cheek-r"></div>
+          <div class="dog-nose"></div>
+          <div class="dog-mouth"></div>
+        </div>
+        <!-- 몸통 -->
+        <div class="dog-body" id="f9-body">
+          <div class="dog-tail" id="f9-tail"></div>
+          <div class="dog-paw-front left"  id="f9-pf-l"></div>
+          <div class="dog-paw-front right" id="f9-pf-r"></div>
+          <div class="dog-paw-back left"   id="f9-pb-l"></div>
+          <div class="dog-paw-back right"  id="f9-pb-r"></div>
+        </div>
+      </div>
+
+      <p id="f9-hint">🐾 강아지를 쓰다듬어주세요</p>
+      <div id="f9-gauge-wrap">
+        <p id="f9-gauge-label">행복도 0%</p>
+        <div id="f9-gauge-bar">
+          <div id="f9-gauge-fill"></div>
+        </div>
+      </div>
+      <div id="f9-clear-msg">
+        <div class="clear-emoji">🐾✨</div>
+        <div class="clear-text" style="color:#f0ddb0;">온기가 방을 가득 채웠어요</div>
+      </div>
+    </div>`;
+
+  const scene   = document.getElementById('floor9-scene');
+  const bg      = document.getElementById('f9-bg');
+  const overlay = document.getElementById('f9-color-overlay');
+  const rug     = document.getElementById('f9-rug');
+  const body    = document.getElementById('f9-body');
+  const head    = document.getElementById('f9-head');
+  const tail    = document.getElementById('f9-tail');
+  const hint    = document.getElementById('f9-hint');
+  const gLabel  = document.getElementById('f9-gauge-label');
+  const gFill   = document.getElementById('f9-gauge-fill');
+  const clearMsg= document.getElementById('f9-clear-msg');
+  const colorEls= [body, head, tail, rug,
+    document.getElementById('f9-ear-l'),
+    document.getElementById('f9-ear-r'),
+    document.getElementById('f9-pf-l'),
+    document.getElementById('f9-pf-r'),
+    document.getElementById('f9-pb-l'),
+    document.getElementById('f9-pb-r'),
+  ];
+  const cheeks = [
+    document.getElementById('f9-cheek-l'),
+    document.getElementById('f9-cheek-r'),
+  ];
+
+  /* 하트 파티클 생성 */
+  function spawnHeart(x, y) {
+    const h = document.createElement('div');
+    h.className = 'dog-heart';
+    h.textContent = ['🧡','💛','🤍','💕'][Math.floor(Math.random()*4)];
+    h.style.cssText = `
+      left:${x}px; top:${y}px;
+      --hx:${(Math.random()*30-15).toFixed(0)}px;`;
+    scene.appendChild(h);
+    setTimeout(() => h.remove(), 1300);
+  }
+
+  /* 강아지 쓰다듬기 */
+  const dog = document.getElementById('f9-dog');
+  dog.addEventListener('click', e => {
+    if (cleared) return;
+    count++;
+    const pct = Math.min(count / NEED * 100, 100);
+
+    /* 게이지 업데이트 */
+    gFill.style.width = pct + '%';
+    gLabel.textContent = `행복도 ${Math.round(pct)}%`;
+    if (pct > 30) gLabel.classList.add('warm');
+
+    /* 강아지 반응 */
+    dog.classList.remove('pet');
+    void dog.offsetWidth;
+    dog.classList.add('pet');
+
+    /* 볼 홍조 */
+    if (pct > 20) cheeks.forEach(c => c.classList.add('flush'));
+
+    /* 꼬리 흔들기 시작 */
+    if (count === 1) tail.classList.add('wag');
+
+    /* 하트 */
+    const rect = scene.getBoundingClientRect();
+    spawnHeart(e.clientX - rect.left, e.clientY - rect.top - 20);
+
+    hint.style.opacity = '0';
+
+    /* ★ 강아지 전체: grayscale → 컬러 점진 전환 (다리 포함 전부 한번에!) */
+    const gray   = Math.max(0, 1 - pct / 100);
+    const bright = 0.8 + pct / 100 * 0.35;
+    dog.style.filter = `grayscale(${gray.toFixed(2)}) brightness(${bright.toFixed(2)})`;
+
+    /* 배경도 점점 따뜻하게 */
+    const warmth = pct / 100;
+    const r1 = Math.round(26  + warmth * 155);
+    const g1 = Math.round(26  + warmth * 45);
+    const b1 = Math.round(26  - warmth * 10);
+    bg.style.background = `linear-gradient(to bottom,
+      rgb(${r1},${g1},${b1}) 0%,
+      rgb(${Math.round(r1*.65)},${Math.round(g1*.55)},${Math.round(b1*.5)}) 100%)`;
+    overlay.style.display = 'none'; /* 오버레이 비활성화 — dog filter로만 제어 */
+
+    /* 클리어 */
+    if (count >= NEED && !cleared) {
+      cleared = true;
+      playAudio(9);
+
+      /* 강아지 완전 컬러 전환 */
+      dog.style.filter = 'grayscale(0) brightness(1.1)';
+      bg.classList.add('colorize');
+      rug.classList.add('colorize');
+
+      /* 웃음소리 이모지 파티클 */
+      for (let i = 0; i < 8; i++) {
+        setTimeout(() => {
+          const rx = Math.random() * scene.offsetWidth;
+          const ry = Math.random() * scene.offsetHeight * 0.6;
+          const h = document.createElement('div');
+          h.className = 'dog-heart';
+          h.textContent = ['😊','🧡','✨','🐶','💛'][Math.floor(Math.random()*5)];
+          h.style.cssText = `left:${rx}px;top:${ry}px;font-size:1.2rem;--hx:${(Math.random()*40-20).toFixed(0)}px;`;
+          scene.appendChild(h);
+          setTimeout(()=>h.remove(),1400);
+        }, i * 120);
+      }
+
+      setTimeout(() => {
+        clearMsg.classList.add('show');
+        setTimeout(() => { lightUp(9); closeModal(true); }, 1800);
+      }, 700);
+    }
+  });
+}
+
+/* ════════════════════════════════════════════
+   ★ 8층 인터랙션: 용의 별자리 잇기
+   3개의 별을 순서대로 클릭하면
+   선으로 이어지며 용 별자리 완성
+════════════════════════════════════════════ */
+function renderFloor8(box) {
+  let cleared  = false;
+  let nextIdx  = 0; // 다음에 클릭해야 할 별 번호 (0~2)
+
+  /* 별 위치 — 실제 용자리(Draco) 형태로 배치
+     꼬리 끝 → 몸통 → 목 → 머리 순서 */
+  const STARS = [
+    { x: 12, y: 72, label: '①', size: 16 },  // 꼬리 끝
+    { x: 26, y: 58, label: '②', size: 15 },  // 꼬리 중간
+    { x: 36, y: 70, label: '③', size: 14 },  // 몸통 아래 굴곡
+    { x: 50, y: 52, label: '④', size: 16 },  // 몸통 중심
+    { x: 60, y: 28, label: '⑤', size: 15 },  // 목
+    { x: 72, y: 18, label: '⑥', size: 18 },  // 머리 위
+    { x: 80, y: 38, label: '⑦', size: 16 },  // 머리 아래 (주둥이)
+  ];
+
+  box.innerHTML = `
+    <div id="floor8-scene">
+      <svg id="f8-svg">
+        <defs>
+          <filter id="blur"><feGaussianBlur stdDeviation="3"/></filter>
+        </defs>
+      </svg>
+      <div id="f8-progress">
+        <div class="f8-dot" id="f8-dot-0"></div>
+        <div class="f8-dot" id="f8-dot-1"></div>
+        <div class="f8-dot" id="f8-dot-2"></div>
+        <div class="f8-dot" id="f8-dot-3"></div>
+        <div class="f8-dot" id="f8-dot-4"></div>
+        <div class="f8-dot" id="f8-dot-5"></div>
+        <div class="f8-dot" id="f8-dot-6"></div>
+      </div>
+      ${STARS.map((s,i) => `
+        <div class="f8-star" id="f8-s${i}" data-idx="${i}"
+          style="left:${s.x}%;top:${s.y}%;--sz:${s.size}px;">
+          <div class="f8-star-glow" style="width:${s.size*2.5}px;height:${s.size*2.5}px;"></div>
+          <div class="f8-star-body" style="--sz:${s.size}px;width:${s.size}px;height:${s.size}px;"></div>
+          <span class="f8-star-num">${s.label}</span>
+        </div>`).join('')}
+      <p id="f8-hint">✦ 별을 순서대로 클릭하세요 ✦</p>
+      <div id="f8-burst"></div>
+      <div id="f8-dragon-label">🐉<br>용의 별자리</div>
+      <div id="f8-clear-msg">
+        <div class="clear-emoji">🐉✨</div>
+        <div class="clear-text" style="color:#f0ddb0;">용의 별자리가 완성됐어요</div>
+      </div>
+    </div>`;
+
+  /* 배경 잔별 생성 */
+  const scene = document.getElementById('floor8-scene');
+  for (let i = 0; i < 55; i++) {
+    const s = document.createElement('div');
+    s.className = 'bg-star';
+    const sz = Math.random() * 1.8 + 0.4;
+    s.style.cssText = `
+      left:${Math.random()*100}%;top:${Math.random()*100}%;
+      width:${sz}px;height:${sz}px;
+      --dur:${(Math.random()*3+1.5).toFixed(1)}s;
+      --del:${(Math.random()*4).toFixed(1)}s;
+      --lo:${(Math.random()*.15+.05).toFixed(2)};
+      --hi:${(Math.random()*.5+.4).toFixed(2)};`;
+    scene.appendChild(s);
+  }
+
+  const svg      = document.getElementById('f8-svg');
+  const hint     = document.getElementById('f8-hint');
+  const burst    = document.getElementById('f8-burst');
+  const dlabel   = document.getElementById('f8-dragon-label');
+  const clearMsg = document.getElementById('f8-clear-msg');
+  const dots     = [0,1,2,3,4,5,6].map(i => document.getElementById(`f8-dot-${i}`));
+
+  /* 용 실루엣 가이드라인 (매우 흐릿하게) */
+  function drawGuide() {
+    const W = scene.offsetWidth, H = scene.offsetHeight;
+    const pts = STARS.map(s => `${s.x/100*W},${s.y/100*H}`).join(' ');
+    const pl = document.createElementNS('http://www.w3.org/2000/svg','polyline');
+    pl.setAttribute('points', pts);
+    pl.setAttribute('fill','none');
+    pl.setAttribute('stroke','rgba(200,170,255,0.07)');
+    pl.setAttribute('stroke-width','7');
+    pl.setAttribute('stroke-linecap','round');
+    pl.setAttribute('stroke-linejoin','round');
+    svg.insertBefore(pl, svg.firstChild);
+  }
+  drawGuide();
+
+  /* 첫 번째 별 활성화 표시 */
+  document.getElementById('f8-s0').classList.add('active');
+
+  /* SVG 별자리 선 그리기 (약한 곡선) */
+  function drawLine(fromEl, toEl) {
+    const sceneRect = scene.getBoundingClientRect();
+    const r1 = fromEl.getBoundingClientRect();
+    const r2 = toEl.getBoundingClientRect();
+    const x1 = r1.left + r1.width/2  - sceneRect.left;
+    const y1 = r1.top  + r1.height/2 - sceneRect.top;
+    const x2 = r2.left + r2.width/2  - sceneRect.left;
+    const y2 = r2.top  + r2.height/2 - sceneRect.top;
+    /* 약간 휜 곡선 (중점에서 살짝 아래로) */
+    const cx = (x1 + x2) / 2 + (Math.random() - 0.5) * 12;
+    const cy = (y1 + y2) / 2 + (Math.random() - 0.5) * 10;
+    const len = Math.sqrt((x2-x1)**2 + (y2-y1)**2) * 1.05;
+
+    const path = document.createElementNS('http://www.w3.org/2000/svg','path');
+    path.setAttribute('d', `M ${x1} ${y1} Q ${cx} ${cy} ${x2} ${y2}`);
+    path.setAttribute('fill','none');
+    path.setAttribute('class','f8-line');
+    path.style.strokeDasharray = len;
+    path.style.strokeDashoffset = len;
+    svg.appendChild(path);
+
+    /* 글로우 복사본 (두꺼운 흐린 선) */
+    const glow = path.cloneNode();
+    glow.setAttribute('stroke','rgba(200,170,255,0.15)');
+    glow.setAttribute('stroke-width','5');
+    glow.setAttribute('filter','url(#blur)');
+    glow.style.strokeDasharray = len;
+    glow.style.strokeDashoffset = len;
+    svg.insertBefore(glow, path);
+  }
+
+  /* 별 클릭 */
+  STARS.forEach((_, i) => {
+    const el = document.getElementById(`f8-s${i}`);
+    el.addEventListener('click', () => {
+      if (cleared || i !== nextIdx) {
+        /* 순서 틀림 → 흔들기 */
+        if (i !== nextIdx) {
+          el.style.animation = 'wrongShake .3s ease';
+          setTimeout(() => el.style.animation = '', 300);
+        }
+        return;
+      }
+
+      /* 정답 클릭 */
+      el.classList.remove('active');
+      el.classList.add('done');
+      dots[i].classList.add('lit');
+      hint.style.opacity = '0';
+
+      /* 선 그리기 (2번째·3번째 클릭 시) */
+      if (i > 0) {
+        drawLine(
+          document.getElementById(`f8-s${i-1}`),
+          el
+        );
+      }
+
+      nextIdx++;
+
+      /* 다음 별 활성화 */
+      if (nextIdx < STARS.length) {
+        document.getElementById(`f8-s${nextIdx}`).classList.add('active');
+      }
+
+      /* 완성! */
+      if (nextIdx >= STARS.length && !cleared) {
+        cleared = true;
+        playAudio(8);
+
+        /* 폭발 이펙트 */
+        burst.classList.add('show');
+        setTimeout(() => dlabel.classList.add('show'), 400);
+        setTimeout(() => {
+          clearMsg.classList.add('show');
+          setTimeout(() => { lightUp(8); closeModal(true); }, 1800);
+        }, 1200);
+      }
+    });
+  });
+}
+
+/* ════════════════════════════════════════════
+   ★ 7층 인터랙션: 딜레마의 방
+   슬라이더를 왼쪽(불안) 끝에 2초, 오른쪽(희망) 끝에 2초
+   머물러야 각각 "마주한" 것으로 인정 → 둘 다 하면 클리어
+════════════════════════════════════════════ */
+function renderFloor7(box) {
+  const HOLD_TIME = 2000;  // 각 끝에서 머물러야 하는 시간 (ms)
+  let cleared    = false;
+  let dragging   = false;
+  let pos        = 50;     // 슬라이더 위치 % (5~95)
+  let darkHeld   = 0;      // 왼쪽 끝 누적 시간
+  let lightHeld  = 0;      // 오른쪽 끝 누적 시간
+  let doneDark   = false;
+  let doneLight  = false;
+  let lastTime   = null;
+
+  box.innerHTML = `
+    <div id="floor7-scene">
+      <div id="f7-left">
+        <div class="f7-moon"></div>
+        <div class="f7-rain" style="left:12%;height:55px;--rd:1.0s;--rdy:0s;"></div>
+        <div class="f7-rain" style="left:22%;height:70px;--rd:1.3s;--rdy:.25s;"></div>
+        <div class="f7-rain" style="left:35%;height:48px;--rd:.95s;--rdy:.6s;"></div>
+        <div class="f7-rain" style="left:48%;height:62px;--rd:1.15s;--rdy:.1s;"></div>
+        <div class="f7-rain" style="left:60%;height:44px;--rd:1.4s;--rdy:.45s;"></div>
+        <div class="f7-rain" style="left:72%;height:58px;--rd:1.05s;--rdy:.8s;"></div>
+        <div class="f7-rain" style="left:84%;height:50px;--rd:1.25s;--rdy:.35s;"></div>
+      </div>
+      <div id="f7-right">
+        <div class="f7-ray" style="left:5%;height:200px;--rw:55px;--rv:3.5s;--rvy:0s;--ra:-5deg;--rb:2deg;"></div>
+        <div class="f7-ray" style="left:22%;height:180px;--rw:40px;--rv:4.5s;--rvy:.6s;--ra:-2deg;--rb:5deg;"></div>
+        <div class="f7-ray" style="left:42%;height:220px;--rw:65px;--rv:3.8s;--rvy:1.2s;--ra:-4deg;--rb:3deg;"></div>
+        <div class="f7-ray" style="left:62%;height:160px;--rw:45px;--rv:5s;--rvy:.3s;--ra:-3deg;--rb:4deg;"></div>
+        <div class="f7-ray" style="left:78%;height:190px;--rw:50px;--rv:4.2s;--rvy:.9s;--ra:-6deg;--rb:1deg;"></div>
+        <div class="f7-mote" style="left:18%;top:35%;--ms:3px;--md:4s;--mdy:0s;--mx:10px;--my:-18px;"></div>
+        <div class="f7-mote" style="left:38%;top:55%;--ms:4px;--md:5.5s;--mdy:.8s;--mx:-8px;--my:-22px;"></div>
+        <div class="f7-mote" style="left:58%;top:28%;--ms:3px;--md:3.8s;--mdy:1.4s;--mx:12px;--my:-14px;"></div>
+        <div class="f7-mote" style="left:75%;top:62%;--ms:5px;--md:4.8s;--mdy:.4s;--mx:-6px;--my:-20px;"></div>
+        <div class="f7-mote" style="left:88%;top:44%;--ms:3px;--md:6s;--mdy:2s;--mx:7px;--my:-16px;"></div>
+      </div>
+      <p id="f7-guide">✦ HOLD AT EACH SIDE ✦</p>
+      <div id="f7-gauges">
+        <div class="f7-gauge-track"><div class="f7-gauge-fill" id="f7-fill-light"></div></div>
+        <div class="f7-gauge-sep"></div>
+        <div class="f7-gauge-track"><div class="f7-gauge-fill" id="f7-fill-dark"></div></div>
+      </div>
+      <div id="f7-divider">
+        <div id="f7-handle"></div>
+      </div>
+      <div id="f7-clear-msg">
+        <div class="clear-emoji">⚖️✨</div>
+        <div class="clear-text" style="color:#f0ddb0;">두 감정을 모두 마주했어요</div>
+      </div>
+    </div>`;
+
+  const scene     = document.getElementById('floor7-scene');
+  const leftEl    = document.getElementById('f7-left');
+  const rightEl   = document.getElementById('f7-right');
+  const divider   = document.getElementById('f7-divider');
+  const fillDark  = document.getElementById('f7-fill-dark');
+  const fillLight = document.getElementById('f7-fill-light');
+  const clearMsg  = document.getElementById('f7-clear-msg');
+
+  /* 슬라이더 위치 업데이트 */
+  function setPos(clientX) {
+    if (cleared) return;
+    const rect = scene.getBoundingClientRect();
+    pos = Math.max(5, Math.min(95, (clientX - rect.left) / rect.width * 100));
+    divider.style.left  = pos + '%';
+    leftEl.style.right  = (100 - pos) + '%';
+    rightEl.style.left  = pos + '%';
+  }
+
+  /* RAF 루프: 끝에 머문 시간 누적 */
+  function tick(ts) {
+    if (cleared) return;
+    if (lastTime !== null) {
+      const dt = ts - lastTime;
+
+      if (pos <= 18 && !doneDark) {
+        darkHeld = Math.min(darkHeld + dt, HOLD_TIME);
+        fillDark.style.width = (darkHeld / HOLD_TIME * 100) + '%';
+        if (darkHeld >= HOLD_TIME) doneDark = true;
+      }
+      if (pos >= 82 && !doneLight) {
+        lightHeld = Math.min(lightHeld + dt, HOLD_TIME);
+        fillLight.style.width = (lightHeld / HOLD_TIME * 100) + '%';
+        if (lightHeld >= HOLD_TIME) doneLight = true;
+      }
+
+      if (doneDark && doneLight && !cleared) {
+        cleared = true;
+        playAudio(7);
+        divider.style.transition = 'left 1s ease';
+        leftEl.style.transition  = 'right 1s ease';
+        rightEl.style.transition = 'left 1s ease';
+        setTimeout(() => {
+          divider.style.left  = '50%';
+          leftEl.style.right  = '50%';
+          rightEl.style.left  = '50%';
+        }, 200);
+        setTimeout(() => {
+          clearMsg.classList.add('show');
+          setTimeout(() => { lightUp(7); closeModal(true); }, 1800);
+        }, 900);
+        return;
+      }
+    }
+    lastTime = ts;
+    requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
+
+  /* 이벤트 */
+  scene.addEventListener('mousedown', e => { dragging = true; setPos(e.clientX); });
+  document.addEventListener('mousemove', e => { if (dragging) setPos(e.clientX); });
+  document.addEventListener('mouseup', () => { dragging = false; });
+  scene.addEventListener('touchstart', e => {
+    dragging = true; setPos(e.touches[0].clientX); e.preventDefault();
+  }, {passive:false});
+  document.addEventListener('touchmove', e => {
+    if (dragging) { setPos(e.touches[0].clientX); e.preventDefault(); }
+  }, {passive:false});
+  document.addEventListener('touchend', () => { dragging = false; });
+}
+
+/* ════════════════════════════════════════════
+   ★ 6층 인터랙션: 숨어서 우는 괴물
+   손전등으로 어둠 속을 탐색해 괴물을 찾으면
+   위로의 메시지가 나타나고 클리어
+════════════════════════════════════════════ */
+function renderFloor6(box) {
+  let cleared    = false;
+  let isFound    = false;
+  let seqId      = 0;  // 시퀀스 ID — 새로 시작할 때마다 증가해서 이전 타이머 무효화
+
+  /* 위로 메시지들 (순서대로 페이드) */
+  const MESSAGES = [
+    '괜찮아…', '혼자여도 괜찮아', '울어도 돼', '네 곁에 있을게 🫧'
+  ];
+  let msgIdx = 0;
+
+  box.innerHTML = `
+    <div id="floor6-scene">
+      <div id="f6-darkness"></div>
+      <div id="f6-cursor"></div>
+      <div id="f6-monster">
+        <div class="m-body" id="f6-mbody">
+          <div class="m-eye left"></div>
+          <div class="m-eye right"></div>
+          <div class="m-tear left"></div>
+          <div class="m-tear right"></div>
+          <div class="m-mouth"></div>
+        </div>
+        <div class="m-belly">
+          <div class="m-arm left"></div>
+          <div class="m-arm right"></div>
+        </div>
+        <div class="m-legs">
+          <div class="m-leg"></div>
+          <div class="m-leg"></div>
+        </div>
+      </div>
+      <div id="f6-message">${MESSAGES[0]}</div>
+      <p id="f6-hint">🔦 마우스로 어둠 속을 탐색해보세요</p>
+      <div id="f6-clear-msg">
+        <div class="clear-emoji">🫧✨</div>
+        <div class="clear-text" style="color:#d0b0f0;">괴물에게 위로를 전했어요</div>
+      </div>
+    </div>`;
+
+  const scene    = document.getElementById('floor6-scene');
+  const darkness = document.getElementById('f6-darkness');
+  const cursor   = document.getElementById('f6-cursor');
+  const monster  = document.getElementById('f6-monster');
+  const mbody    = document.getElementById('f6-mbody');
+  const message  = document.getElementById('f6-message');
+  const hint     = document.getElementById('f6-hint');
+  const clearMsg = document.getElementById('f6-clear-msg');
+
+  /* 초기 손전등 위치 → 왼쪽 상단 (괴물과 멀리) */
+  darkness.style.setProperty('--mx', '10%');
+  darkness.style.setProperty('--my', '10%');
+  cursor.style.left = '0px';
+  cursor.style.top  = '0px';
+
+  /* 마우스 이동 → 손전등 + 커서 */
+  scene.addEventListener('mousemove', e => {
+    if (cleared) return;
+    const rect = scene.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+
+    darkness.style.setProperty('--mx', x + 'px');
+    darkness.style.setProperty('--my', y + 'px');
+    cursor.style.left = x + 'px';
+    cursor.style.top  = y + 'px';
+
+    hint.style.opacity = '0';
+
+    /* 괴물과의 거리 체크 */
+    const mRect = monster.getBoundingClientRect();
+    const mx = mRect.left + mRect.width/2  - rect.left;
+    const my = mRect.top  + mRect.height/2 - rect.top;
+    const dist = Math.sqrt((x-mx)**2 + (y-my)**2);
+
+    if (dist < 100 && !isFound && !cleared) {
+      isFound = true;
+      seqId++;               // 새 시퀀스 시작
+      const myId = seqId;   // 이 시퀀스만의 ID 고정
+      mbody.classList.add('found');
+      message.textContent = MESSAGES[0];
+      message.classList.add('show');
+
+      /* 메시지 4개 순서대로, seqId가 바뀌면 자동 중단 */
+      function showNextMessage(idx) {
+        if (myId !== seqId || !isFound) return; // 시퀀스 무효 or 범위 이탈
+        if (idx >= MESSAGES.length) {
+          if (!cleared) {
+            cleared = true;
+            playAudio(6);
+            darkness.style.transition = 'background 1.2s ease';
+            darkness.style.background = 'transparent';
+            setTimeout(() => {
+              clearMsg.classList.add('show');
+              setTimeout(() => { lightUp(6); closeModal(true); }, 1800);
+            }, 600);
+          }
+          return;
+        }
+        message.style.opacity = '0';
+        setTimeout(() => {
+          if (myId !== seqId || !isFound) return;
+          message.textContent = MESSAGES[idx];
+          message.style.opacity = '1';
+          setTimeout(() => showNextMessage(idx + 1), 2800);
+        }, 450);
+      }
+
+      setTimeout(() => showNextMessage(1), 2800);
+
+    } else if (dist >= 100 && isFound) {
+      /* 손전등 떠나면 리셋 */
+      isFound = false;
+      mbody.classList.remove('found');
+      message.classList.remove('show');
+      /* 다음에 다시 비출 때 첫 메시지부터 */
+      setTimeout(() => { message.textContent = MESSAGES[0]; }, 500);
+    }
+  });
+
+  /* 터치 지원 */
+  scene.addEventListener('touchmove', e => {
+    const touch = e.touches[0];
+    scene.dispatchEvent(new MouseEvent('mousemove', {
+      clientX: touch.clientX, clientY: touch.clientY
+    }));
+    e.preventDefault();
+  }, {passive:false});
+}
+
+/* ════════════════════════════════════════════
+   ★ 5층 인터랙션: 떨어지는 별 잡기
+   하늘에서 별이 떨어질 때 땅에 닿기 전 클릭!
+   5개 잡으면 클리어
+════════════════════════════════════════════ */
+function renderFloor5(box) {
+  const NEED    = 5;   // 몇 개 잡으면 클리어
+  let caught    = 0;
+  let cleared   = false;
+  let spawnTimer= null;
+
+  box.innerHTML = `
+    <div id="floor5-scene">
+      <div id="f5-glow"></div>
+      <p id="f5-counter">⭐ 0 / ${NEED}</p>
+      <p id="f5-hint">✦ 별이 땅에 닿기 전에 클릭하세요!</p>
+      <div id="f5-ground"></div>
+      <div id="f5-clear-msg">
+        <div class="clear-emoji">⭐💥</div>
+        <div class="clear-text" style="color:#f0ddb0;">별을 모두 잡았어요!</div>
+      </div>
+    </div>`;
+
+  const scene    = document.getElementById('floor5-scene');
+  const counter  = document.getElementById('f5-counter');
+  const hint     = document.getElementById('f5-hint');
+  const glowEl   = document.getElementById('f5-glow');
+  const clearMsg = document.getElementById('f5-clear-msg');
+
+  /* 별 하나 생성 */
+  function spawnStar() {
+    if (cleared) return;
+    const star = document.createElement('div');
+    star.className = 'falling-star';
+
+    const size    = Math.random() * 14 + 12;          // 12~26px (별 모양 크기)
+    const glowSz  = size * 2.8;
+    const xPos    = Math.random() * 80 + 10;
+    const dur     = (Math.random() * 1.4 + 1.8).toFixed(2);
+    const trailH  = Math.round(size * 2.2);
+    const sceneH  = scene.offsetHeight || 220;
+    const fallDist= sceneH - 30;
+
+    star.style.cssText = `
+      width:${size}px; height:${size}px;
+      top:-${size}px; left:${xPos}%;
+      --fall-dur:${dur}s;
+      --fall-dist:${fallDist}px;
+      --glow-size:${glowSz}px;`;
+
+    star.innerHTML = `
+      <div class="star-trail" style="height:${trailH}px;"></div>
+      <div class="star-body" style="width:${size}px;height:${size}px;"></div>`;
+
+    /* 클릭(잡기) */
+    star.addEventListener('click', e => {
+      if (cleared || star.dataset.caught) return;
+      star.dataset.caught = '1';
+      star.style.animation = 'none';
+      star.style.opacity   = '0';
+
+      /* 잡기 폭발 이펙트 */
+      const burst = document.createElement('div');
+      burst.className = 'catch-burst';
+      const rect  = scene.getBoundingClientRect();
+      const bsize = size * 2.5;
+      burst.style.cssText = `
+        width:${bsize}px; height:${bsize}px;
+        left:${e.clientX - rect.left - bsize/2}px;
+        top:${e.clientY  - rect.top  - bsize/2}px;`;
+      scene.appendChild(burst);
+      setTimeout(() => { burst.remove(); star.remove(); }, 550);
+
+      caught++;
+      counter.textContent = `⭐ ${caught} / ${NEED}`;
+      hint.style.opacity  = '0';
+
+      /* 화면 점점 밝아지기 */
+      const pct = caught / NEED;
+      glowEl.style.background =
+        `radial-gradient(ellipse at 50% 40%, rgba(255,200,80,${(pct*0.35).toFixed(2)}) 0%, rgba(255,150,30,${(pct*0.1).toFixed(2)}) 60%, transparent 100%)`;
+
+      if (caught >= NEED && !cleared) {
+        cleared = true;
+        clearTimeout(spawnTimer);
+        playAudio(5);
+        /* 화면 폭발 */
+        glowEl.style.background =
+          'radial-gradient(ellipse at 50% 40%, rgba(255,240,120,.7) 0%, rgba(255,180,50,.3) 55%, transparent 100%)';
+        setTimeout(() => {
+          clearMsg.classList.add('show');
+          setTimeout(() => { lightUp(5); closeModal(true); }, 1800);
+        }, 400);
+      }
+    });
+
+    scene.appendChild(star);
+
+    /* 바닥 닿으면 사라짐 */
+    setTimeout(() => {
+      if (!star.dataset.caught) star.remove();
+    }, parseFloat(dur) * 1000 + 100);
+  }
+
+  /* 별 계속 생성 (랜덤 간격) */
+  function scheduleNext() {
+    if (cleared) return;
+    const delay = Math.random() * 900 + 600; // 0.6~1.5초마다
+    spawnTimer = setTimeout(() => {
+      spawnStar();
+      scheduleNext();
+    }, delay);
+  }
+
+  /* 처음 2개 바로 생성 후 스케줄 시작 */
+  setTimeout(spawnStar, 300);
+  setTimeout(spawnStar, 900);
+  scheduleNext();
+}
+
+/* ════════════════════════════════════════════
+   ★ 4층 인터랙션: 멈춘 시간과 노을
+   시계를 꾹 누르고 있으면 초침이 멈추고
+   배경이 노을빛으로 변하며 클리어
+════════════════════════════════════════════ */
+function renderFloor4(box) {
+  const HOLD_NEEDED = 3000; // 3초 누르면 클리어 (ms)
+  let holding  = false;
+  let cleared  = false;
+  let holdStart = 0;
+  let holdPct  = 0;
+  let rafId    = null;
+  let secAngle = 0;
+  let secRafId = null;
+
+  box.innerHTML = `
+    <div id="floor4-scene">
+      <p id="f4-hint">🕰️ 시계를 꾹 누르고 있어보세요</p>
+      <div id="f4-clock">
+        <div id="f4-ring"></div>
+        <div class="clock-hand" id="f4-hour"></div>
+        <div class="clock-hand" id="f4-minute"></div>
+        <div class="clock-hand" id="f4-second"></div>
+      </div>
+      <p id="f4-hold-label">HOLD</p>
+      <div id="f4-clear-msg">
+        <div class="clear-emoji">🕰️✨</div>
+        <div class="clear-text" style="color:#f0ddb0;">시간이 멈췄어요</div>
+      </div>
+    </div>`;
+
+  const scene    = document.getElementById('floor4-scene');
+  const clock    = document.getElementById('f4-clock');
+  const ring     = document.getElementById('f4-ring');
+  const secHand  = document.getElementById('f4-second');
+  const hint     = document.getElementById('f4-hint');
+  const holdLabel= document.getElementById('f4-hold-label');
+  const clearMsg = document.getElementById('f4-clear-msg');
+
+  /* 현재 실제 시각으로 시침·분침·초침 초기화 */
+  const now = new Date();
+  const h = now.getHours() % 12;
+  const m = now.getMinutes();
+  const s = now.getSeconds();
+  document.getElementById('f4-hour').style.transform   = `rotate(${h*30 + m*0.5}deg)`;
+  document.getElementById('f4-minute').style.transform = `rotate(${m*6}deg)`;
+  secAngle = s * 6;
+  secHand.style.transform = `rotate(${secAngle}deg)`;
+
+  /* 링을 초침 위치에서 시작하도록 회전 오프셋 설정 */
+  ring.style.transform = `rotate(${secAngle}deg)`;
+
+  /* 초침 틱틱 애니메이션 */
+  let lastTick = performance.now();
+  function tickSecond(ts) {
+    if (holding || cleared) { secRafId = requestAnimationFrame(tickSecond); return; }
+    if (ts - lastTick >= 1000) {
+      secAngle = (secAngle + 6) % 360;
+      secHand.style.transform = `rotate(${secAngle}deg)`;
+      ring.style.transform    = `rotate(${secAngle}deg)`; /* 링도 같이 회전 */
+      secHand.style.transition = 'transform 0.1s cubic-bezier(.4,2,.6,1)';
+      lastTick = ts;
+    }
+    secRafId = requestAnimationFrame(tickSecond);
+  }
+  secRafId = requestAnimationFrame(tickSecond);
+
+  /* 홀드 진행 루프 */
+  function holdLoop(ts) {
+    if (!holding || cleared) return;
+    holdPct = Math.min((ts - holdStart) / HOLD_NEEDED, 1);
+
+    /* 링 게이지 업데이트 */
+    ring.style.background =
+      `conic-gradient(rgba(255,160,40,0.85) ${holdPct*360}deg, transparent ${holdPct*360}deg)`;
+
+    /* 배경 노을 점진적 변화 */
+    const r1 = Math.round(10  + holdPct * 180);
+    const g1 = Math.round(8   + holdPct * 60);
+    const b1 = Math.round(18  - holdPct * 10);
+    const r2 = Math.round(18  + holdPct * 150);
+    const g2 = Math.round(10  + holdPct * 50);
+    const b2 = Math.round(24  - holdPct * 15);
+    scene.style.background =
+      `linear-gradient(to bottom, rgb(${r1},${g1},${b1}) 0%, rgb(${r2},${g2},${b2}) 100%)`;
+
+    if (holdPct >= 1) {
+      /* 클리어! */
+      cleared = true;
+      cancelAnimationFrame(secRafId);
+      playAudio(4);
+      scene.style.background =
+        'linear-gradient(to bottom, #c04010 0%, #e08020 40%, #f0c040 100%)';
+      clock.style.boxShadow =
+        '0 0 60px rgba(255,160,40,.9), 0 0 120px rgba(255,120,20,.5)';
+      setTimeout(() => {
+        clearMsg.classList.add('show');
+        setTimeout(() => { lightUp(4); closeModal(true); }, 1800);
+      }, 400);
+      return;
+    }
+    rafId = requestAnimationFrame(holdLoop);
+  }
+
+  /* 누르기 시작 */
+  function startHold(e) {
+    if (cleared) return;
+    holding   = true;
+    holdStart = performance.now() - holdPct * HOLD_NEEDED; // 이어서 채우기
+    clock.classList.add('holding');
+    holdLabel.classList.add('active');
+    hint.style.opacity = '0';
+    rafId = requestAnimationFrame(holdLoop);
+    e.preventDefault();
+  }
+
+  /* 누르기 해제 */
+  function endHold() {
+    if (cleared) return;
+    holding = false;
+    clock.classList.remove('holding');
+    holdLabel.classList.remove('active');
+    cancelAnimationFrame(rafId);
+    /* 서서히 게이지 줄이기 */
+    function drain() {
+      if (holding || cleared) return;
+      holdPct = Math.max(0, holdPct - 0.015);
+      ring.style.background =
+        `conic-gradient(rgba(255,160,40,0.85) ${holdPct*360}deg, transparent ${holdPct*360}deg)`;
+      const r1 = Math.round(10 + holdPct * 180);
+      const g1 = Math.round(8  + holdPct * 60);
+      const b1 = Math.round(18 - holdPct * 10);
+      const r2 = Math.round(18 + holdPct * 150);
+      const g2 = Math.round(10 + holdPct * 50);
+      const b2 = Math.round(24 - holdPct * 15);
+      scene.style.background =
+        `linear-gradient(to bottom, rgb(${r1},${g1},${b1}) 0%, rgb(${r2},${g2},${b2}) 100%)`;
+      if (holdPct > 0) requestAnimationFrame(drain);
+    }
+    requestAnimationFrame(drain);
+  }
+
+  clock.addEventListener('mousedown',  startHold);
+  clock.addEventListener('touchstart', startHold, {passive:false});
+  document.addEventListener('mouseup',  endHold);
+  document.addEventListener('touchend', endHold);
+}
+
+/* ════════════════════════════════════════════
+   ★ 3층 인터랙션: 비밀의 문틈
+   문고리를 드래그하면 문이 열리고 빛이 새어나옴
+════════════════════════════════════════════ */
+function renderFloor3(box) {
+  const OPEN_GOAL = 65; // 이 각도(도)만큼 열면 클리어
+  let angle    = 0;
+  let cleared  = false;
+  let dragging = false;
+  let startX   = 0;
+
+  box.innerHTML = `
+    <div id="floor3-scene">
+      <div id="f3-light"></div>
+      <div id="f3-crack"></div>
+      <div id="f3-frame">
+        <div id="f3-door">
+          <div id="f3-knob"></div>
+        </div>
+      </div>
+      <p id="f3-hint">🚪 문고리를 잡고 오른쪽으로 드래그하세요</p>
+      <div id="f3-clear-msg">
+        <div class="clear-emoji">🚪✨</div>
+        <div class="clear-text" style="color:#f0ddb0;">문이 열렸어요</div>
+      </div>
+    </div>`;
+
+  const scene    = document.getElementById('floor3-scene');
+  const door     = document.getElementById('f3-door');
+  const knob     = document.getElementById('f3-knob');
+  const lightBg  = document.getElementById('f3-light');
+  const crack    = document.getElementById('f3-crack');
+  const hint     = document.getElementById('f3-hint');
+  const clearMsg = document.getElementById('f3-clear-msg');
+
+  /* 문 각도에 따라 시각 업데이트 */
+  function updateDoor(deg) {
+    angle = Math.max(0, Math.min(OPEN_GOAL + 5, deg));
+    const pct = angle / OPEN_GOAL; // 0~1
+
+    // 문 3D 회전
+    door.style.transform = `perspective(400px) rotateY(${-angle}deg)`;
+
+    // 문틈 빛 줄기
+    const crackW = Math.min(angle * 0.6, 18);
+    crack.style.width = crackW + 'px';
+
+    // 배경 빛 번짐
+    const glow = Math.round(pct * 80);
+    lightBg.style.background =
+      `radial-gradient(ellipse at 38% 50%, rgba(255,220,140,${(pct*0.45).toFixed(2)}) 0%, rgba(255,180,60,${(pct*0.15).toFixed(2)}) ${glow}%, transparent 100%)`;
+
+    // 빛 입자 (문이 조금 열린 이후)
+    if (angle > 15 && Math.random() < 0.25) spawnParticle();
+
+    // 힌트 숨기기
+    if (angle > 10) hint.style.opacity = '0';
+
+    // 클리어 조건
+    if (angle >= OPEN_GOAL && !cleared) {
+      cleared = true;
+      playAudio(3);
+      // 빛 폭발
+      for (let i = 0; i < 12; i++) setTimeout(() => spawnParticle(true), i * 80);
+      setTimeout(() => {
+        clearMsg.classList.add('show');
+        setTimeout(() => { lightUp(3); closeModal(true); }, 1800);
+      }, 400);
+    }
+  }
+
+  /* 빛 입자 생성 */
+  function spawnParticle(big = false) {
+    const p = document.createElement('div');
+    p.className = 'light-particle';
+    const sz = big ? Math.random()*30+15 : Math.random()*12+5;
+    const px = (scene.offsetWidth * 0.38) + (Math.random()-0.5)*30;
+    const py = scene.offsetHeight * (0.2 + Math.random()*0.6);
+    p.style.cssText = `
+      width:${sz}px; height:${sz}px; left:${px}px; top:${py}px;
+      --pd:${(Math.random()*1.2+0.8).toFixed(2)}s;
+      --pdx:${(Math.random()*60-20).toFixed(0)}px;
+      --pdy:${(Math.random()*-60-10).toFixed(0)}px;`;
+    scene.appendChild(p);
+    setTimeout(() => p.remove(), 2200);
+  }
+
+  /* 드래그: 마우스 */
+  door.addEventListener('mousedown', e => {
+    if (cleared) return;
+    dragging = true;
+    startX = e.clientX;
+    door.style.transition = 'none';
+    e.preventDefault();
+  });
+  document.addEventListener('mousemove', e => {
+    if (!dragging || cleared) return;
+    const dx = e.clientX - startX;
+    updateDoor(angle + dx * 0.55);
+    startX = e.clientX;
+  });
+  document.addEventListener('mouseup', () => { dragging = false; });
+
+  /* 드래그: 터치 */
+  door.addEventListener('touchstart', e => {
+    if (cleared) return;
+    dragging = true;
+    startX = e.touches[0].clientX;
+    e.preventDefault();
+  }, {passive:false});
+  document.addEventListener('touchmove', e => {
+    if (!dragging || cleared) return;
+    const dx = e.touches[0].clientX - startX;
+    updateDoor(angle + dx * 0.55);
+    startX = e.touches[0].clientX;
+    e.preventDefault();
+  }, {passive:false});
+  document.addEventListener('touchend', () => { dragging = false; });
+}
+
+/* ════════════════════════════════════════════
+   ★ 2층 인터랙션: 오로라 드래그
+   마우스를 드래그하면 파스텔 빛 덩어리가 생겼다 사라짐
+   일정 거리 이상 그리면 클리어
+════════════════════════════════════════════ */
+function renderFloor2(box){
+  const GOAL = 1800; // 이 픽셀 거리만큼 드래그하면 클리어
+  let totalDist = 0;
+  let cleared   = false;
+  let drawing   = false;
+  let lastX = 0, lastY = 0;
+
+  /* 파스텔 오로라 색상 팔레트 */
+  const COLORS = [
+    'rgba(180,120,255,VAL)', 'rgba(100,200,255,VAL)',
+    'rgba(120,255,200,VAL)', 'rgba(255,150,220,VAL)',
+    'rgba(200,240,130,VAL)', 'rgba(255,200,100,VAL)',
+  ];
+
+  box.innerHTML = `
+    <div id="floor2-scene">
+      <p id="f2-hint">🌌 마우스를 누른 채로 드래그해보세요</p>
+      <div id="f2-gauge-wrap">
+        <p id="f2-gauge-label">오로라를 채워주세요</p>
+        <div id="f2-gauge-bar"><div id="f2-gauge-fill"></div></div>
+      </div>
+      <div id="f2-clear-msg">
+        <div class="clear-emoji">🌌✨</div>
+        <div class="clear-text">오로라가 피어났어요</div>
+      </div>
+    </div>`;
+
+  const scene    = document.getElementById('floor2-scene');
+  const hint     = document.getElementById('f2-hint');
+  const gaugeFill= document.getElementById('f2-gauge-fill');
+  const clearMsg = document.getElementById('f2-clear-msg');
+
+  function spawnBlob(x, y, speed){
+    const blob = document.createElement('div');
+    blob.className = 'aurora-blob';
+    const size = Math.random() * 50 + 25;
+    const colorTemplate = COLORS[Math.floor(Math.random() * COLORS.length)];
+    const opacity = (Math.random() * 0.5 + 0.4).toFixed(2);
+    const color = colorTemplate.replace('VAL', opacity);
+    const dur = (Math.random() * 0.8 + 1.0).toFixed(2);
+    blob.style.cssText = `
+      width:${size}px; height:${size}px;
+      background:radial-gradient(circle, ${color}, transparent 70%);
+      left:${x - size/2}px; top:${y - size/2}px;
+      --dur:${dur}s;
+      filter: blur(${Math.random()*6+4}px);`;
+    scene.appendChild(blob);
+    setTimeout(() => blob.remove(), parseFloat(dur) * 1000 + 100);
+  }
+
+  scene.addEventListener('mousedown', e => {
+    if(cleared) return;
+    drawing = true;
+    const rect = scene.getBoundingClientRect();
+    lastX = e.clientX - rect.left;
+    lastY = e.clientY - rect.top;
+    hint.style.opacity = '0';
+  });
+
+  scene.addEventListener('mousemove', e => {
+    if(!drawing || cleared) return;
+    const rect = scene.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    const dx = x - lastX, dy = y - lastY;
+    const dist = Math.sqrt(dx*dx + dy*dy);
+
+    if(dist > 4){ // 너무 느린 움직임은 무시
+      spawnBlob(x, y, dist);
+      totalDist += dist;
+      lastX = x; lastY = y;
+
+      const pct = Math.min((totalDist / GOAL) * 100, 100);
+      gaugeFill.style.width = pct + '%';
+
+      if(totalDist >= GOAL && !cleared){
+        cleared = true;
+        /* 🎵 음악 재생 */
+        playAudio(2);
+        // 폭발적인 오로라 파티클
+        for(let i = 0; i < 18; i++){
+          setTimeout(() => {
+            spawnBlob(
+              Math.random() * scene.offsetWidth,
+              Math.random() * scene.offsetHeight,
+              50
+            );
+          }, i * 60);
+        }
+        setTimeout(() => {
+          clearMsg.classList.add('show');
+          setTimeout(() => { lightUp(2); closeModal(true); }, 1800);
+        }, 500);
+      }
+    }
+  });
+
+  scene.addEventListener('mouseup',   () => { drawing = false; });
+  scene.addEventListener('mouseleave',() => { drawing = false; });
+
+  /* 터치 지원 */
+  scene.addEventListener('touchstart', e => {
+    if(cleared) return;
+    drawing = true;
+    const rect = scene.getBoundingClientRect();
+    lastX = e.touches[0].clientX - rect.left;
+    lastY = e.touches[0].clientY - rect.top;
+    hint.style.opacity = '0';
+    e.preventDefault();
+  }, {passive:false});
+
+  scene.addEventListener('touchmove', e => {
+    if(!drawing || cleared) return;
+    const rect = scene.getBoundingClientRect();
+    const x = e.touches[0].clientX - rect.left;
+    const y = e.touches[0].clientY - rect.top;
+    const dx = x - lastX, dy = y - lastY;
+    const dist = Math.sqrt(dx*dx + dy*dy);
+    if(dist > 4){
+      spawnBlob(x, y, dist);
+      totalDist += dist;
+      lastX = x; lastY = y;
+      const pct = Math.min((totalDist / GOAL) * 100, 100);
+      gaugeFill.style.width = pct + '%';
+      if(totalDist >= GOAL && !cleared){
+        cleared = true;
+        playAudio(2);
+        clearMsg.classList.add('show');
+        setTimeout(() => { lightUp(2); closeModal(true); }, 1800);
+      }
+    }
+    e.preventDefault();
+  }, {passive:false});
+}
+
+/* ════════════════════════════════════════════
+   ★ 1층 인터랙션: 주스 잔 연타 → 넘침
+════════════════════════════════════════════ */
+function renderFloor1(box){
+  const NEED = 15; // 몇 번 클릭하면 넘치는지
+  let count=0, cleared=false;
+
+  box.innerHTML=`
+    <div id="floor1-scene">
+      <p id="f1-hint">🧃 주스 잔을 계속 클릭해보세요!</p>
+      <div class="juice-cup" id="f1-cup">
+        <div class="straw"></div>
+        <div class="cup-top"></div>
+        <div class="cup-body">
+          <div class="juice-fill" id="f1-juice"></div>
+        </div>
+        <div class="cup-bottom"></div>
+      </div>
+      <p id="f1-counter">0 / ${NEED}</p>
+      <div id="f1-overflow"></div>
+      <div id="f1-clear-msg">
+        <div class="clear-emoji">🧃✨</div>
+        <div class="clear-text">주스가 왈칵 넘쳤어요!</div>
+      </div>
+    </div>`;
+
+  const scene    = document.getElementById('floor1-scene');
+  const cup      = document.getElementById('f1-cup');
+  const juice    = document.getElementById('f1-juice');
+  const counter  = document.getElementById('f1-counter');
+  const hint     = document.getElementById('f1-hint');
+  const overflow = document.getElementById('f1-overflow');
+  const clearMsg = document.getElementById('f1-clear-msg');
+
+  /* 파티클 */
+  function spawnDrops(cx,cy,n=5){
+    for(let i=0;i<n;i++){
+      const d=document.createElement('div');
+      d.className='juice-drop';
+      const ang=Math.random()*360;
+      const dist=Math.random()*65+20;
+      const colors=['#ff8030','#ffaa50','#e06010','#ffcc70','#ff5510'];
+      d.style.cssText=`--s:${Math.random()*9+4}px;--c:${colors[Math.floor(Math.random()*colors.length)]};--tx:${Math.cos(ang*Math.PI/180)*dist}px;--ty:${Math.sin(ang*Math.PI/180)*dist-35}px;--d:${(Math.random()*.45+.38).toFixed(2)}s;left:${cx}px;top:${cy}px;`;
+      scene.appendChild(d);
+      setTimeout(()=>d.remove(),950);
+    }
+  }
+
+  scene.addEventListener('click',function onClick(e){
+    if(cleared)return;
+    count++;
+    const pct=Math.min((count/NEED)*100,100);
+    juice.style.height=pct+'%';
+    counter.textContent=`${count} / ${NEED}`;
+
+    /* 컵 흔들기 */
+    cup.classList.remove('shake');
+    void cup.offsetWidth;
+    cup.classList.add('shake');
+
+    /* 파티클 */
+    const rect=scene.getBoundingClientRect();
+    const cx=e.clientX-rect.left, cy=e.clientY-rect.top;
+    spawnDrops(cx,cy,Math.min(3+Math.floor(pct/18),9));
+
+    /* 힌트 텍스트 */
+    if(pct>=40&&pct<75) hint.textContent='🔥 더, 더 클릭해!';
+    if(pct>=75&&pct<95) hint.textContent='💥 거의 다 찼어요!!';
+    if(pct>=95)         hint.textContent='🌊 넘친다!!!';
+
+    /* 클리어 */
+    if(count>=NEED&&!cleared){
+      cleared=true;
+      scene.removeEventListener('click',onClick);
+      spawnDrops(cx,cy,25);
+      overflow.classList.add('burst');
+      hint.style.opacity='0';
+      counter.style.opacity='0';
+
+      /* 🎵 음악 재생 (파일 넣으면 자동으로 재생됨) */
+      playAudio(1);
+
+      setTimeout(()=>{
+        clearMsg.classList.add('show');
+        setTimeout(()=>{ lightUp(1); closeModal(true); }, 1800);
+      },350);
+    }
+  });
+}
+
+/* ─── 모달 닫기 ──────────────────────── */
+function closeModal(keepAudio = false){
+  document.getElementById('overlay').classList.remove('open');
+  state.currentFloor=null;
+  if (!keepAudio) {
+    stopFloorAudio();
+    resumeBGM();
+  }
+}
+
+/* ─── 이벤트 바인딩 ──────────────────── */
+document.querySelectorAll('.window[data-floor]').forEach(w=>{
+  w.addEventListener('click',()=>openModal(parseInt(w.dataset.floor)));
+});
+document.querySelectorAll('.porch-window[data-floor]').forEach(w=>{
+  w.addEventListener('click',()=>openModal(parseInt(w.dataset.floor)));
+});
+document.getElementById('win-10').addEventListener('click',()=>openModal(10));
+document.getElementById('btn-close').addEventListener('click',closeModal);
+document.getElementById('btn-later').addEventListener('click',closeModal);
+document.getElementById('overlay').addEventListener('click',e=>{
+  if(e.target===document.getElementById('overlay'))closeModal();
+});
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape'){
+    closeModal();
+    closeLyrics();
+    document.getElementById('photo-overlay').classList.remove('open');
+  }
+});
+document.getElementById('btn-clear').addEventListener('click',()=>{
+  if(state.currentFloor!==null&&state.currentFloor!==1&&state.currentFloor!==10){
+    lightUp(state.currentFloor);
+    closeModal();
+  }
+});
+
+/* ─── 현관문: 컨셉 포토 갤러리 ──────── */
+(function initGallery() {
+  const overlay = document.getElementById('photo-overlay');
+  const track   = document.getElementById('photo-track');
+  const counter = document.getElementById('photo-counter');
+  const dots    = document.querySelectorAll('.photo-dot');
+  const dlBtn   = document.getElementById('photo-dl-btn');
+  const TOTAL   = 8;
+  let cur = 0;
+
+  function goTo(idx) {
+    cur = (idx + TOTAL) % TOTAL;
+    track.style.transform = `translateX(-${cur * 100}%)`;
+    counter.textContent = `${cur + 1} / ${TOTAL}`;
+    dots.forEach((d,i) => d.classList.toggle('active', i === cur));
+  }
+
+  document.getElementById('photo-prev').addEventListener('click', () => goTo(cur - 1));
+  document.getElementById('photo-next').addEventListener('click', () => goTo(cur + 1));
+  dots.forEach(d => d.addEventListener('click', () => goTo(+d.dataset.idx)));
+
+  /* 터치 스와이프 */
+  let tx = 0;
+  track.addEventListener('touchstart', e => { tx = e.touches[0].clientX; }, {passive:true});
+  track.addEventListener('touchend',   e => {
+    const dx = e.changedTouches[0].clientX - tx;
+    if (Math.abs(dx) > 40) goTo(dx < 0 ? cur + 1 : cur - 1);
+  });
+
+  /* 키보드 */
+  document.addEventListener('keydown', e => {
+    if (!overlay.classList.contains('open')) return;
+    if (e.key === 'ArrowLeft')  goTo(cur - 1);
+    if (e.key === 'ArrowRight') goTo(cur + 1);
+  });
+
+  /* 다운로드 */
+  dlBtn.addEventListener('click', () => {
+    const img = document.querySelectorAll('.photo-slide img')[cur];
+    if (!img || !img.src || img.naturalWidth === 0) return;
+    const link = document.createElement('a');
+    link.download = `영혼빌리지_컨셉포토_${cur+1}.jpg`;
+    link.href = img.src;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  });
+
+  function openGallery() {
+    goTo(0);
+    overlay.classList.add('open');
+  }
+  function closeGallery() { overlay.classList.remove('open'); }
+
+  document.getElementById('front-door').addEventListener('click', openGallery);
+  document.getElementById('photo-close').addEventListener('click', closeGallery);
+  overlay.addEventListener('click', e => { if (e.target === overlay) closeGallery(); });
+})();
+
+/* ─── 가사 팝업 ──────────────────────── */
+let lyricsCurrentFloor = null;
+
+function showLyrics(floor) {
+  const data = LYRICS[floor];
+  const room = ROOMS[floor];
+  if (!data) return;
+  lyricsCurrentFloor = floor;
+
+  document.getElementById('lyrics-floor-tag').textContent  = `─ ${room.floor} ─`;
+  document.getElementById('lyrics-song-title').textContent = data.title;
+  document.getElementById('lyrics-body').innerHTML = data.body.replace(/\n/g,'<br>');
+
+  document.getElementById('lyrics-overlay').classList.add('open');
+}
+
+function closeLyrics() {
+  document.getElementById('lyrics-overlay').classList.remove('open');
+  lyricsCurrentFloor = null;
+}
+
+document.getElementById('lyrics-close').addEventListener('click', closeLyrics);
+document.getElementById('lyrics-exit').addEventListener('click', closeLyrics);
+document.getElementById('lyrics-overlay').addEventListener('click', e => {
+  if (e.target === document.getElementById('lyrics-overlay')) closeLyrics();
+});
+
+/* 다시 하기 버튼 → 가사 닫고 해당 층 모달 다시 열기 */
+document.getElementById('lyrics-replay').addEventListener('click', () => {
+  const floor = lyricsCurrentFloor;
+  closeLyrics();
+  if (floor) setTimeout(() => openModal(floor), 200);
+});
+</script>
+
+<!--
+════════════════════════════════════════════════════
+  📌 나중에 음악 파일 넣는 방법 (마지막에 읽어!)
+════════════════════════════════════════════════════
+
+  [1단계] 폴더 구조 만들기
+  ─────────────────────────
+  soul-village.html 이 있는 폴더 안에 audio 폴더를 만들어.
+
+    📁 내 프로젝트 폴더
+    ├── soul-village.html
+    └── 📁 audio
+        ├── floor1.mp3    ← 1층: 리턴 투 피크닉 하이라이트
+        ├── floor2.mp3    ← 2층: 미완성 효과
+        ├── floor3.mp3
+        ├── ...
+        └── floor10.mp3
+
+  [2단계] 코드 수정하기
+  ─────────────────────
+  이 파일을 메모장이나 VS Code로 열어서
+  위쪽에 있는 AUDIO = { } 부분을 찾아.
+
+    1: null,   ← 이걸
+
+    1: new Audio('audio/floor1.mp3'),   ← 이렇게 바꾸면 끝!
+
+  null 을 → new Audio('파일경로') 로 바꾸기만 하면 돼.
+
+  [3단계] 배경 이미지 넣기 (선택사항)
+  ─────────────────────────────────────
+  각 층 인터랙션 함수 안에 🖼️ 표시된 부분의
+  background: ... 줄에서
+  background: url('images/floor1-bg.jpg') center/cover no-repeat;
+  이렇게 바꾸면 배경 이미지가 들어가.
+
+════════════════════════════════════════════════════
+-->
+</body>
+</html>
